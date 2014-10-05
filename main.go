@@ -34,7 +34,7 @@ func main(){
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
-	c.AddFunc("0 */1 * * * *", func() { sendData.TestData() })
+	c.AddFunc("0 */1 * * * *", func() { sendData.SendData(100) })
 	c.Start()
 
 	for {
