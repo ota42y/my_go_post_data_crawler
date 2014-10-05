@@ -1,6 +1,7 @@
 package twitter
 
 import (
+	"fmt"
 	"./../../database"
 	"github.com/ChimeraCoder/anaconda"
 )
@@ -58,6 +59,8 @@ func (worker *Worker) Work() {
 	anaconda.SetConsumerKey(worker.consumerKey)
 	anaconda.SetConsumerSecret(worker.consumerSecret)
 	api := anaconda.NewTwitterApi(worker.accessToken, worker.accessTokenSecret)
+
+	fmt.Printf("work Twitter")
 
 	for _, twitterId := range worker.checkTwitterIdList {
 		tweets := getUnRegisterTweet(twitterId, api, worker.mongodbData)

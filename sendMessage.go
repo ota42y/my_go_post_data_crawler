@@ -3,7 +3,6 @@ package main
 import (
 	"./database"
 	"./sendHubot"
-	"fmt"
 )
 
 type SendData struct {
@@ -39,11 +38,8 @@ func (sendData *SendData) SendData(limit int) {
 
 func (sendData *SendData) TestData(){
 	noSendPosts := sendData.Database.GetNoSendPosts(100)
-	fmt.Println("get post ", len(noSendPosts))
 
 	if(len(noSendPosts) != 0){
-		fmt.Println(noSendPosts[0].MessageId)
-
 		if(sendData.Server.SendData(noSendPosts[0].GetUrlValue())){
 			sendData.Database.SendPost(noSendPosts[0])
 		}
