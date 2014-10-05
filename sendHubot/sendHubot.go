@@ -25,5 +25,5 @@ func (server *Server) SendData(post_data *url.Values) (success bool){
 		return false
 	}
 
-	return resp.StatusCode != 200
+	return resp.StatusCode == 200
 }
