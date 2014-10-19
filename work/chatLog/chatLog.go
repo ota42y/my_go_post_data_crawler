@@ -59,6 +59,8 @@ func IsDirectory(name string) (isDir bool,err error) {
 }
 
 func (worker *Worker) Work() {
+  fmt.Printf("work chatLog\n")
+
   fileInfos,err := ioutil.ReadDir(worker.logFolder)
 
   if err != nil {
@@ -119,6 +121,8 @@ func (worker *Worker) saveRoomLog(logFolder string, roomName string) {
 }
 
 func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName string) {
+  fmt.Printf("save chatLog %s\n", fileName)
+
   logs := getFilteredLog(path.Join(logDir, roomName, fileName))
 
   saveFolder := path.Join(worker.saveFolder, roomName)
@@ -130,6 +134,7 @@ func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName stri
 }
 
 func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName string) {
+  fmt.Printf("save chatLog %s\n", fileName)
   logs := getFilteredLog(path.Join(logDir, roomName, fileName))
 
   saveFolder := path.Join(worker.saveFolder, roomName)
