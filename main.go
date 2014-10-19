@@ -6,6 +6,7 @@ import (
   "os"
   "github.com/robfig/cron"
   "./work/twitter"
+  "./work/chatLog"
   "io/ioutil"
   "gopkg.in/yaml.v2"
 )
@@ -31,10 +32,12 @@ func main(){
 	sendData := NewSendDataFromMap(configData)
 
 	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home + "/twitter.yml"), sendData.Database)
+  chatLogWorker := chatLog.NewWorkerFromMap(configData)
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
 	c.AddFunc("0 */1 * * * *", func() { sendData.SendData(100) })
+  c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
 	c.Start()
 
 	for {

@@ -9,10 +9,16 @@ postPath: http://localhost:8080/hubot/send_message
 
 mongodbUrl: localhost
 
+rootDir: /Users/ota42y/
+
 twitter:
   databaseName: twitter
   collectionName: tweets
   screenNames: [LoveLive_staff]
+
+chatLog:
+  logFolder: log/chat/
+  saveFolder: archive/chat/
 ```
 
 twitter.yml
@@ -20,5 +26,16 @@ twitter.yml
 consumerKey:
 consumerSecret:
 accessToken:
-accessTokenSecret: 
+accessTokenSecret:
+```
+
+table
+```
+CREATE TABLE send_message (
+  message_id VARCHAR(255) PRIMARY KEY,
+  room_name VARCHAR(255),
+  message TEXT,
+  created_at DATETIME,
+  is_send BOOLEAN
+);
 ```
