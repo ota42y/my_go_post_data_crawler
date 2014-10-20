@@ -21,6 +21,8 @@ chatLog:
   saveFolder: archive/chat/
 ```
 
+(chat log for https://github.com/adragomir/hubot-logger)
+
 twitter.yml
 ```yml
 consumerKey:
