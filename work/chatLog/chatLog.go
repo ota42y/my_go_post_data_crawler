@@ -7,7 +7,6 @@ import (
   "os"
   "regexp"
   "time"
-  "log"
   "io/ioutil"
   "path"
 )
@@ -23,7 +22,7 @@ type ChatLog struct{
 func (chat ChatLog) ToString() string {
   t, e := time.Parse("2006-01-02T15:04:05.999-0700", chat.Date)
   if e != nil {
-    log.Fatal(e)
+    fmt.Printf(e)
     return "error " + chat.Message
   }
   return t.Format("15:04") + " " + chat.Message
