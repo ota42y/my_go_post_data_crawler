@@ -9,6 +9,7 @@ import (
   "time"
   "io/ioutil"
   "path"
+  "./../../logger"
 )
 
 type ChatLog struct{
@@ -31,9 +32,10 @@ func (chat ChatLog) ToString() string {
 type Worker struct{
   logFolder string
   saveFolder string
+  logger *logger.MyLogger
 }
 
-func NewWorkerFromMap(config map[interface{}]interface{}) (worker *Worker) {
+func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogger) (worker *Worker) {
 	chatLogConfig := config["chatLog"].(map[interface{}]interface{})
 	logFolder := chatLogConfig["logFolder"].(string)
 	saveFolder := chatLogConfig["saveFolder"].(string)
@@ -42,6 +44,7 @@ func NewWorkerFromMap(config map[interface{}]interface{}) (worker *Worker) {
 	return &Worker{
 		logFolder: path.Join(rootDir, logFolder),
 		saveFolder: path.Join(rootDir, saveFolder),
+    logger: logger,
 	}
 }
 
@@ -59,12 +62,11 @@ func IsDirectory(name string) (isDir bool,err error) {
 }
 
 func (worker *Worker) Work() {
-  fmt.Printf("work chatLog\n")
+  worker.logger.LogPrint("chat_log", "work")
 
   fileInfos,err := ioutil.ReadDir(worker.logFolder)
-
   if err != nil {
-    fmt.Errorf("Directory cannot read %s\n",err)
+    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("Directory cannot read %s",err))
     return
   }
 
@@ -73,7 +75,8 @@ func (worker *Worker) Work() {
     folderPath := path.Join(worker.logFolder, fileInfo.Name())
     flag, e := IsDirectory(folderPath)
     if e != nil {
-      panic(e)
+      worker.logger.ErrorPrint("chat_log", fmt.Sprintf("%s",err))
+      return
     }
 
     if flag {
@@ -87,7 +90,7 @@ func (worker *Worker) saveRoomLog(logFolder string, roomName string) {
   fileInfos,err := ioutil.ReadDir(roomFolder)
 
   if err != nil {
-    fmt.Errorf("Directory cannot read %s\n",err)
+    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("Directory cannot read %s",err))
     return
   }
 
@@ -96,7 +99,7 @@ func (worker *Worker) saveRoomLog(logFolder string, roomName string) {
     filePath := path.Join(roomFolder, fileInfo.Name())
     flag, e := IsDirectory(filePath)
     if e != nil {
-      fmt.Printf("%v", e)
+      worker.logger.ErrorPrint("chat_log", fmt.Sprintf("%s",err))
       return
     }
 
@@ -121,9 +124,9 @@ func (worker *Worker) saveRoomLog(logFolder string, roomName string) {
 }
 
 func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName string) {
-  fmt.Printf("save chatLog %s\n", fileName)
+  worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
 
-  logs := getFilteredLog(path.Join(logDir, roomName, fileName))
+  logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
 
   saveFolder := path.Join(worker.saveFolder, roomName)
   if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
@@ -134,8 +137,8 @@ func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName stri
 }
 
 func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName string) {
-  fmt.Printf("save chatLog %s\n", fileName)
-  logs := getFilteredLog(path.Join(logDir, roomName, fileName))
+  worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
+  logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
 
   saveFolder := path.Join(worker.saveFolder, roomName)
   if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
@@ -152,7 +155,7 @@ func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName 
 func (worker *Worker) saveLogToFile(filePath string, logs []ChatLog) {
   f, err := os.Create(filePath)
   if err != nil {
-    fmt.Printf("error %v\n", err)
+    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("error %s",err))
     return
   }
 
@@ -165,8 +168,8 @@ func (worker *Worker) saveLogToFile(filePath string, logs []ChatLog) {
   }
 }
 
-func getFilteredLog(filepath string) []ChatLog {
-  log_data := loadFile(filepath)
+func (worker *Worker) getFilteredLog(filepath string) []ChatLog {
+  log_data := worker.loadFile(filepath)
 
   logs := []ChatLog{}
   for _, log := range log_data {
@@ -198,10 +201,10 @@ func regexpFilter(reg string, text string) bool {
     return true
 }
 
-func loadFile(filepath string) []ChatLog {
+func (worker *Worker) loadFile(filepath string) []ChatLog {
   f, err := os.Open(filepath)
   if err != nil {
-    fmt.Fprintf(os.Stderr, "File %s could not read: %v\n", filepath, err)
+    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("File %s could not read: %v\n", filepath, err))
     return nil
   }
 
@@ -223,7 +226,7 @@ func loadFile(filepath string) []ChatLog {
   }
 
   if serr := scanner.Err(); serr != nil {
-    fmt.Fprintf(os.Stderr, "File %s scan error: %v\n", filepath, err)
+    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("File %s scan error: %v\n", filepath, err))
     return nil
   }
 

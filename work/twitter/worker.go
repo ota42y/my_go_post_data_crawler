@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"./../../database"
 	"github.com/ChimeraCoder/anaconda"
+	"./../../logger"
 )
 
 func makePostDataFromTweet(roomName string, tweet *anaconda.Tweet) (postData *database.Post){
@@ -21,9 +22,10 @@ type Worker struct {
 	consumerSecret string
 	accessToken string
 	accessTokenSecret string
+	logger *logger.MyLogger
 }
 
-func NewWorkerFromMap(sendDataConfig map[interface{}]interface{}, twitterAuthConfig map[interface{}]interface{}, postDatabase *database.Database) (* Worker) {
+func NewWorkerFromMap(sendDataConfig map[interface{}]interface{}, twitterAuthConfig map[interface{}]interface{}, postDatabase *database.Database, logger *logger.MyLogger) (* Worker) {
 	mongodbUrl := sendDataConfig["mongodbUrl"].(string)
 
 
@@ -51,6 +53,7 @@ func NewWorkerFromMap(sendDataConfig map[interface{}]interface{}, twitterAuthCon
 		consumerSecret: consumerSecret,
 		accessToken: accessToken,
 		accessTokenSecret: accessTokenSecret,
+		logger: logger,
 	}
 }
 
@@ -60,7 +63,7 @@ func (worker *Worker) Work() {
 	anaconda.SetConsumerSecret(worker.consumerSecret)
 	api := anaconda.NewTwitterApi(worker.accessToken, worker.accessTokenSecret)
 
-	fmt.Printf("work Twitter")
+	worker.logger.LogPrint("twitter", "work")
 
 	for _, twitterId := range worker.checkTwitterIdList {
 		tweets := getUnRegisterTweet(twitterId, api, worker.mongodbData)
@@ -70,6 +73,7 @@ func (worker *Worker) Work() {
 			posts = append(posts, makePostDataFromTweet(worker.postDatabase.DefaultRoomName, &tweet))
 		}
 
+		worker.logger.LogPrint("twitter", fmt.Sprintf("add posts %d", len(posts)))
 		worker.postDatabase.AddNewPosts(posts)
 		registerTweets(tweets, worker.mongodbData)
 	}

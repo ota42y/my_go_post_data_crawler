@@ -35,8 +35,8 @@ func main(){
 
 	sendData := NewSendDataFromMap(configData)
 
-	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home + "/twitter.yml"), sendData.Database)
-  chatLogWorker := chatLog.NewWorkerFromMap(configData)
+	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home + "/twitter.yml"), sendData.Database, logger)
+  chatLogWorker := chatLog.NewWorkerFromMap(configData, logger)
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
@@ -49,7 +49,7 @@ func main(){
 		if err != nil{
 			return
 		}
+    logger.LogPrint("main", "sleep")
 		time.Sleep(1 * time.Minute)
-		logger.LogPrint("main", "sleep")
 	}
 }

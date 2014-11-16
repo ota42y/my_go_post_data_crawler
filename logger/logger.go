@@ -18,6 +18,10 @@ func (logger *MyLogger) Print(tag string, key string, message string) {
 	fmt.Printf("[%s][%s] %s : %s\n", time.Now(), tagname, key, message)
 }
 
+func (logger *MyLogger) ErrorPrint(tag string, message string) {
+	logger.Print(tag, "error", message)
+}
+
 func (logger *MyLogger) LogPrint(tag string, message string) {
 	logger.Print(tag, "log", message)
 }
