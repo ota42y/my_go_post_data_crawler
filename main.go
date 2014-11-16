@@ -1,7 +1,6 @@
 package main
 
 import (
-  "fmt"
   "time"
   "os"
   "github.com/robfig/cron"
@@ -9,6 +8,7 @@ import (
   "./work/chatLog"
   "io/ioutil"
   "gopkg.in/yaml.v2"
+  "./logger"
 )
 
 func loadYaml(path string) (map[interface{}]interface{}){
@@ -27,8 +27,12 @@ func loadYaml(path string) (map[interface{}]interface{}){
 
 func main(){
 	setting_home := os.Args[1]
-
 	configData := loadYaml(setting_home + "/go_crawler_setting.yml")
+
+  logger := logger.NewFromMap("go_cron", configData)
+  defer logger.Close()
+  logger.LogPrint("main", "start")
+
 	sendData := NewSendDataFromMap(configData)
 
 	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home + "/twitter.yml"), sendData.Database)
@@ -46,6 +50,6 @@ func main(){
 			return
 		}
 		time.Sleep(1 * time.Minute)
-		fmt.Println("sleep")
+		logger.LogPrint("main", "sleep")
 	}
 }
