@@ -1,50 +1,49 @@
 package chatLog
 
 import (
-  "encoding/json"
-  "bufio"
-  "fmt"
-  "os"
-  "regexp"
-  "time"
-  "io/ioutil"
-  "path"
-  "./../../logger"
+	"./../../logger"
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"regexp"
+	"time"
 )
 
-type ChatLog struct{
-  Nick string `json:nick`
-  Date string `json:date`
-  Message string `json:message`
-  Channel string `json:channel`
-  Type string `json type`
+type ChatLog struct {
+	Nick    string `json:nick`
+	Date    string `json:date`
+	Message string `json:message`
+	Channel string `json:channel`
+	Type    string `json type`
 }
 
 func (chat ChatLog) ToString() string {
-  t, e := time.Parse("2006-01-02T15:04:05.999-0700", chat.Date)
-  if e != nil {
-    fmt.Printf("%s\n", e)
-    return "error " + chat.Message
-  }
-  return t.Format("15:04") + " " + chat.Message
+	t, e := time.Parse("2006-01-02T15:04:05.999-0700", chat.Date)
+	if e != nil {
+		return "error " + chat.Message
+	}
+	return t.Format("15:04") + " " + chat.Message
 }
 
-type Worker struct{
-  logFolder string
-  saveFolder string
-  logger *logger.MyLogger
+type Worker struct {
+	logFolder  string
+	saveFolder string
+	logger     *logger.MyLogger
 }
 
 func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogger) (worker *Worker) {
 	chatLogConfig := config["chatLog"].(map[interface{}]interface{})
 	logFolder := chatLogConfig["logFolder"].(string)
 	saveFolder := chatLogConfig["saveFolder"].(string)
-  rootDir := config["rootDir"].(string)
+	rootDir := config["rootDir"].(string)
 
 	return &Worker{
-		logFolder: path.Join(rootDir, logFolder),
+		logFolder:  path.Join(rootDir, logFolder),
 		saveFolder: path.Join(rootDir, saveFolder),
-    logger: logger,
+		logger:     logger,
 	}
 }
 
@@ -52,183 +51,183 @@ func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogge
 // 昨日のログファイルがあれば最新版にする(日付またぎ対策)
 
 // 指定されたファイル名がディレクトリかどうか調べる
-func IsDirectory(name string) (isDir bool,err error) {
-	fInfo,err := os.Stat(name) // FileInfo型が返る。
+func IsDirectory(name string) (isDir bool, err error) {
+	fInfo, err := os.Stat(name) // FileInfo型が返る。
 	if err != nil {
-		return false,err // もしエラーならエラー情報を返す
+		return false, err // もしエラーならエラー情報を返す
 	}
 	// ディレクトリかどうかチェック
-	return fInfo.IsDir(),nil
+	return fInfo.IsDir(), nil
 }
 
 func (worker *Worker) Work() {
-  worker.logger.LogPrint("chat_log", "work")
+	worker.logger.LogPrint("chat_log", "work")
 
-  fileInfos,err := ioutil.ReadDir(worker.logFolder)
-  if err != nil {
-    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("Directory cannot read %s",err))
-    return
-  }
+	fileInfos, err := ioutil.ReadDir(worker.logFolder)
+	if err != nil {
+		worker.logger.ErrorPrint("chat_log", fmt.Sprintf("Directory cannot read %s", err))
+		return
+	}
 
-  for _,fileInfo := range fileInfos {
-    // *FileInfo型
-    folderPath := path.Join(worker.logFolder, fileInfo.Name())
-    flag, e := IsDirectory(folderPath)
-    if e != nil {
-      worker.logger.ErrorPrint("chat_log", fmt.Sprintf("%s",err))
-      return
-    }
+	for _, fileInfo := range fileInfos {
+		// *FileInfo型
+		folderPath := path.Join(worker.logFolder, fileInfo.Name())
+		flag, e := IsDirectory(folderPath)
+		if e != nil {
+			worker.logger.ErrorPrint("chat_log", fmt.Sprintf("%s", err))
+			return
+		}
 
-    if flag {
-      worker.saveRoomLog(worker.logFolder, fileInfo.Name())
-    }
-  }
+		if flag {
+			worker.saveRoomLog(worker.logFolder, fileInfo.Name())
+		}
+	}
 }
 
 func (worker *Worker) saveRoomLog(logFolder string, roomName string) {
-  roomFolder := path.Join(logFolder, roomName)
-  fileInfos,err := ioutil.ReadDir(roomFolder)
+	roomFolder := path.Join(logFolder, roomName)
+	fileInfos, err := ioutil.ReadDir(roomFolder)
 
-  if err != nil {
-    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("Directory cannot read %s",err))
-    return
-  }
+	if err != nil {
+		worker.logger.ErrorPrint("chat_log", fmt.Sprintf("Directory cannot read %s", err))
+		return
+	}
 
-  for _,fileInfo := range fileInfos {
-    // *FileInfo型
-    filePath := path.Join(roomFolder, fileInfo.Name())
-    flag, e := IsDirectory(filePath)
-    if e != nil {
-      worker.logger.ErrorPrint("chat_log", fmt.Sprintf("%s",err))
-      return
-    }
+	for _, fileInfo := range fileInfos {
+		// *FileInfo型
+		filePath := path.Join(roomFolder, fileInfo.Name())
+		flag, e := IsDirectory(filePath)
+		if e != nil {
+			worker.logger.ErrorPrint("chat_log", fmt.Sprintf("%s", err))
+			return
+		}
 
-    if !flag {
-      // ログファイルなので保存する
-      t, e := time.Parse("2006-01-02.txt", fileInfo.Name())
-      if e == nil {
-        today := time.Now()
-        if today.Year() == t.Year() && today.Month() == t.Month() && today.Day() == t.Day() {
-          worker.saveTodayLog(logFolder, roomName, fileInfo.Name())
-        }
+		if !flag {
+			// ログファイルなので保存する
+			t, e := time.Parse("2006-01-02.txt", fileInfo.Name())
+			if e == nil {
+				today := time.Now()
+				if today.Year() == t.Year() && today.Month() == t.Month() && today.Day() == t.Day() {
+					worker.saveTodayLog(logFolder, roomName, fileInfo.Name())
+				}
 
-        yesterday := today.AddDate(0, 0, -1)
-        if yesterday.Year() == t.Year() && yesterday.Month() == t.Month() && yesterday.Day() == t.Day() {
-          worker.saveYesterdayLog(logFolder, roomName, fileInfo.Name())
-        }
-      }else {
-        // .DS_Store
-      }
-    }
-  }
+				yesterday := today.AddDate(0, 0, -1)
+				if yesterday.Year() == t.Year() && yesterday.Month() == t.Month() && yesterday.Day() == t.Day() {
+					worker.saveYesterdayLog(logFolder, roomName, fileInfo.Name())
+				}
+			} else {
+				// .DS_Store
+			}
+		}
+	}
 }
 
 func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName string) {
-  worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
+	worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
 
-  logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
+	logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
 
-  saveFolder := path.Join(worker.saveFolder, roomName)
-  if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
-    os.MkdirAll(saveFolder, 0777)
-  }
+	saveFolder := path.Join(worker.saveFolder, roomName)
+	if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
+		os.MkdirAll(saveFolder, 0777)
+	}
 
-  worker.saveLogToFile(path.Join(saveFolder, fileName), logs)
+	worker.saveLogToFile(path.Join(saveFolder, fileName), logs)
 }
 
 func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName string) {
-  worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
-  logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
+	worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
+	logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
 
-  saveFolder := path.Join(worker.saveFolder, roomName)
-  if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
-    os.MkdirAll(saveFolder, 0777)
-  }
+	saveFolder := path.Join(worker.saveFolder, roomName)
+	if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
+		os.MkdirAll(saveFolder, 0777)
+	}
 
-  // ファイルが存在する場合のみ、最新版にアップデートする
-  saveFilePath := path.Join(saveFolder, fileName)
-  if _, err := os.Stat(saveFilePath); !os.IsNotExist(err) {
-    worker.saveLogToFile(saveFilePath, logs)
-  }
+	// ファイルが存在する場合のみ、最新版にアップデートする
+	saveFilePath := path.Join(saveFolder, fileName)
+	if _, err := os.Stat(saveFilePath); !os.IsNotExist(err) {
+		worker.saveLogToFile(saveFilePath, logs)
+	}
 }
 
 func (worker *Worker) saveLogToFile(filePath string, logs []ChatLog) {
-  f, err := os.Create(filePath)
-  if err != nil {
-    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("error %s",err))
-    return
-  }
+	f, err := os.Create(filePath)
+	if err != nil {
+		worker.logger.ErrorPrint("chat_log", fmt.Sprintf("error %s", err))
+		return
+	}
 
-  defer f.Close()
+	defer f.Close()
 
-  for _, log := range logs {
-    if _, err = f.WriteString(log.ToString() + "\n"); err != nil {
-      fmt.Printf("%v\n", err)
-    }
-  }
+	for _, log := range logs {
+		if _, err = f.WriteString(log.ToString() + "\n"); err != nil {
+			worker.logger.ErrorPrint("chat_log",fmt.Sprintf("error %s", err))
+		}
+	}
 }
 
 func (worker *Worker) getFilteredLog(filepath string) []ChatLog {
-  log_data := worker.loadFile(filepath)
+	log_data := worker.loadFile(filepath)
 
-  logs := []ChatLog{}
-  for _, log := range log_data {
-    if filter(log) {
-      logs = append(logs, log)
-    }
-  }
-  return logs
+	logs := []ChatLog{}
+	for _, log := range log_data {
+		if filter(log) {
+			logs = append(logs, log)
+		}
+	}
+	return logs
 }
 
 func filter(log ChatLog) bool {
-  if regexpFilter("!(ota42y)", log.Nick){
-    return false
-  }
-  if regexpFilter("^@.*", log.Message){
-    return false
-  }
-  if regexpFilter("^$", log.Message){
-    return false
-  }
+	if regexpFilter("!(ota42y)", log.Nick) {
+		return false
+	}
+	if regexpFilter("^@.*", log.Message) {
+		return false
+	}
+	if regexpFilter("^$", log.Message) {
+		return false
+	}
 
-  return true
+	return true
 }
 
 func regexpFilter(reg string, text string) bool {
-    if m, _ := regexp.MatchString(reg, text); !m {
-        return false
-    }
-    return true
+	if m, _ := regexp.MatchString(reg, text); !m {
+		return false
+	}
+	return true
 }
 
 func (worker *Worker) loadFile(filepath string) []ChatLog {
-  f, err := os.Open(filepath)
-  if err != nil {
-    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("File %s could not read: %v\n", filepath, err))
-    return nil
-  }
+	f, err := os.Open(filepath)
+	if err != nil {
+		worker.logger.ErrorPrint("chat_log", fmt.Sprintf("File %s could not read: %v\n", filepath, err))
+		return nil
+	}
 
-  defer f.Close()
-  scanner := bufio.NewScanner(f)
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
 
-  logs := []ChatLog{}
-  for scanner.Scan() {
-    // 1行読み込む
-    line := scanner.Text()
+	logs := []ChatLog{}
+	for scanner.Scan() {
+		// 1行読み込む
+		line := scanner.Text()
 
-    // ログ構造体にデータを入れる
-    var chat_log ChatLog
-    if err := json.Unmarshal([]byte(line), &chat_log); err != nil {
-        panic(err)
-    }
+		// ログ構造体にデータを入れる
+		var chat_log ChatLog
+		if err := json.Unmarshal([]byte(line), &chat_log); err != nil {
+			panic(err)
+		}
 
-    logs = append(logs, chat_log)
-  }
+		logs = append(logs, chat_log)
+	}
 
-  if serr := scanner.Err(); serr != nil {
-    worker.logger.ErrorPrint("chat_log", fmt.Sprintf("File %s scan error: %v\n", filepath, err))
-    return nil
-  }
+	if serr := scanner.Err(); serr != nil {
+		worker.logger.ErrorPrint("chat_log", fmt.Sprintf("File %s scan error: %v\n", filepath, err))
+		return nil
+	}
 
-  return logs
+	return logs
 }

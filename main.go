@@ -1,17 +1,17 @@
 package main
 
 import (
-  "time"
-  "os"
-  "github.com/robfig/cron"
-  "./work/twitter"
-  "./work/chatLog"
-  "io/ioutil"
-  "gopkg.in/yaml.v2"
-  "./logger"
+	"./logger"
+	"./work/chatLog"
+	"./work/twitter"
+	"github.com/robfig/cron"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"time"
 )
 
-func loadYaml(path string) (map[interface{}]interface{}){
+func loadYaml(path string) map[interface{}]interface{} {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -25,31 +25,35 @@ func loadYaml(path string) (map[interface{}]interface{}){
 	return config
 }
 
-func main(){
+func main() {
 	setting_home := os.Args[1]
 	configData := loadYaml(setting_home + "/go_crawler_setting.yml")
 
-  logger := logger.NewFromMap("go_cron", configData)
-  defer logger.Close()
-  logger.LogPrint("main", "start")
+	logger := logger.NewFromMap("go_cron", configData)
+	defer logger.Close()
+	logger.LogPrint("main", "start")
 
+	// hubotへのポスト用
 	sendData := NewSendDataFromMap(configData)
 
-	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home + "/twitter.yml"), sendData.Database, logger)
-  chatLogWorker := chatLog.NewWorkerFromMap(configData, logger)
+	// twitter収集用
+	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home+"/twitter.yml"), sendData.Database, logger)
+
+	// チャットログ収集用
+	chatLogWorker := chatLog.NewWorkerFromMap(configData, logger)
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
 	c.AddFunc("0 */1 * * * *", func() { sendData.SendData(100) })
-  c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
+	c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
 	c.Start()
 
 	for {
 		_, err := os.Stat(setting_home + "/go_crawler_setting.yml")
-		if err != nil{
+		if err != nil {
 			return
 		}
-    logger.LogPrint("main", "sleep")
+		logger.LogPrint("main", "sleep")
 		time.Sleep(1 * time.Minute)
 	}
 }
