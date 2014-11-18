@@ -31,6 +31,7 @@ func NewDatabase(dataSourceName string, defaultRoomName string) *Database {
 	}
 	db.DB()
 	db.AutoMigrate(&Post{})
+	db.Model(&Post{}).AddUniqueIndex("idx_message_id", "message_id")
 
 	return &Database{
 		DefaultRoomName: defaultRoomName,
