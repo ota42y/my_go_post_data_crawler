@@ -30,3 +30,12 @@ consumerSecret:
 accessToken:
 accessTokenSecret:
 ```
+
+evernote.yml
+```yml
+evernote_mail:
+  xxxxxx@m.evernote.com
+gmail_account:
+  xxxxxx@gmail.com
+gmail_pass:
+  password

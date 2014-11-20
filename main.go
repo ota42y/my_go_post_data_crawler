@@ -2,6 +2,7 @@ package main
 
 import (
 	"./logger"
+	"./evernote"
 	"./work/chatLog"
 	"./work/twitter"
 	"github.com/robfig/cron"
@@ -28,6 +29,10 @@ func loadYaml(path string) map[interface{}]interface{} {
 func main() {
 	setting_home := os.Args[1]
 	configData := loadYaml(setting_home + "/go_crawler_setting.yml")
+
+	// evernote送信用
+	evernote := evernote.NewSenderFromMap(loadYaml(setting_home+"/evernote.yml"))
+	//evernote.SendNote("ほのキチ", "⊂(・8・)⊃＜ﾎﾉｶﾁｬｧｧｧﾝ!")
 
 	logger := logger.NewFromMap("go_cron", configData)
 	defer logger.Close()
