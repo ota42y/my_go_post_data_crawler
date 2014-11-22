@@ -32,7 +32,6 @@ func main() {
 
 	// evernote送信用
 	evernote := evernote.NewSenderFromMap(loadYaml(setting_home+"/evernote.yml"))
-	//evernote.SendNote("ほのキチ", "⊂(・8・)⊃＜ﾎﾉｶﾁｬｧｧｧﾝ!")
 
 	logger := logger.NewFromMap("go_cron", configData)
 	defer logger.Close()
@@ -45,7 +44,7 @@ func main() {
 	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home+"/twitter.yml"), sendData.Database, logger)
 
 	// チャットログ収集用
-	chatLogWorker := chatLog.NewWorkerFromMap(configData, logger)
+	chatLogWorker := chatLog.NewWorkerFromMap(configData, logger, evernote)
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })

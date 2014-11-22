@@ -2,6 +2,7 @@ package chatLog
 
 import (
 	"./../../logger"
+	"./../../evernote"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -32,9 +33,10 @@ type Worker struct {
 	logFolder  string
 	saveFolder string
 	logger     *logger.MyLogger
+	evernote *evernote.Sender
 }
 
-func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogger) (worker *Worker) {
+func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogger, evernote *evernote.Sender) (worker *Worker) {
 	chatLogConfig := config["chatLog"].(map[interface{}]interface{})
 	logFolder := chatLogConfig["logFolder"].(string)
 	saveFolder := chatLogConfig["saveFolder"].(string)
@@ -44,6 +46,7 @@ func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogge
 		logFolder:  path.Join(rootDir, logFolder),
 		saveFolder: path.Join(rootDir, saveFolder),
 		logger:     logger,
+		evernote: evernote,
 	}
 }
 
@@ -123,8 +126,6 @@ func (worker *Worker) saveRoomLog(logFolder string, roomName string) {
 }
 
 func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName string) {
-	worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
-
 	logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
 
 	saveFolder := path.Join(worker.saveFolder, roomName)
@@ -132,11 +133,11 @@ func (worker *Worker) saveTodayLog(logDir string, roomName string, fileName stri
 		os.MkdirAll(saveFolder, 0777)
 	}
 
+	worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
 	worker.saveLogToFile(path.Join(saveFolder, fileName), logs)
 }
 
 func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName string) {
-	worker.logger.LogPrint("chat_log", fmt.Sprintf("save chat log %s", fileName))
 	logs := worker.getFilteredLog(path.Join(logDir, roomName, fileName))
 
 	saveFolder := path.Join(worker.saveFolder, roomName)
@@ -144,10 +145,22 @@ func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName 
 		os.MkdirAll(saveFolder, 0777)
 	}
 
-	// ファイルが存在する場合のみ、最新版にアップデートする
+	// ファイルが存在する場合、削除してEvernoteに送信する(何度も送らないためファイルがあるときのみ)
 	saveFilePath := path.Join(saveFolder, fileName)
 	if _, err := os.Stat(saveFilePath); !os.IsNotExist(err) {
-		worker.saveLogToFile(saveFilePath, logs)
+		worker.logger.LogPrint("chat_log", fmt.Sprintf("send chat log %s to evernote", fileName))
+
+		// 10kb
+		byteStr := make([]byte, 0, 1024* 10)
+		for _, v := range logs {
+			byteStr = append(byteStr, v.ToString()...)
+			byteStr = append(byteStr, '\n')
+		}
+
+		worker.evernote.SendNote(fileName, string(byteStr))
+
+		// 送信後にファイルは消す(次回以降送らないため)
+		os.Remove(saveFilePath)
 	}
 }
 
