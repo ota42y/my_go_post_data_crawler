@@ -2,9 +2,9 @@ package twitter
 
 import (
 	"fmt"
-	"./../../database"
+	"./../../lib/database"
 	"github.com/ChimeraCoder/anaconda"
-	"./../../logger"
+	"./../../lib/logger"
 )
 
 func makePostDataFromTweet(roomName string, tweet *anaconda.Tweet) (postData *database.Post){

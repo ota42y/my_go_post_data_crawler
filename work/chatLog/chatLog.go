@@ -1,8 +1,8 @@
 package chatLog
 
 import (
-	"./../../logger"
-	"./../../evernote"
+	"./../../lib/logger"
+	"./../../lib/evernote"
 	"bufio"
 	"encoding/json"
 	"fmt"

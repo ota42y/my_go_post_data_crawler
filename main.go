@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./logger"
-	"./evernote"
+	"./lib/logger"
+	"./lib/evernote"
 	"./work/sendMessage"
 	"./work/chatLog"
 	"./work/twitter"
