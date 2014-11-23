@@ -1,8 +1,8 @@
 package sendMessage
 
 import (
-	"../../database"
-	"../../sendHubot"
+	"../../lib/database"
+	"../../lib/sendHubot"
 )
 
 type SendData struct {
