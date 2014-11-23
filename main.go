@@ -3,6 +3,7 @@ package main
 import (
 	"./logger"
 	"./evernote"
+	"./work/sendMessage"
 	"./work/chatLog"
 	"./work/twitter"
 	"github.com/robfig/cron"
@@ -38,7 +39,7 @@ func main() {
 	logger.LogPrint("main", "start")
 
 	// hubotへのポスト用
-	sendData := NewSendDataFromMap(configData)
+	sendData := sendMessage.NewSendDataFromMap(configData)
 
 	// twitter収集用
 	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home+"/twitter.yml"), sendData.Database, logger)
@@ -48,7 +49,7 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
-	c.AddFunc("0 */1 * * * *", func() { sendData.SendData(100) })
+	c.AddFunc("0 */1 * * * *", func() { sendData.Work() })
 	c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
 	c.Start()
 
