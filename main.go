@@ -13,6 +13,14 @@ import (
 	"time"
 )
 
+func loadFile(path string) (buf []byte) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
 func loadYaml(path string) map[interface{}]interface{} {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -32,7 +40,7 @@ func main() {
 	configData := loadYaml(setting_home + "/go_crawler_setting.yml")
 
 	// evernote送信用
-	evernote := evernote.NewSenderFromMap(loadYaml(setting_home+"/evernote.yml"))
+	evernote := evernote.NewSenderFromData(loadFile(setting_home+"/evernote.yml"))
 
 	logger := logger.NewFromMap("go_cron", configData)
 	defer logger.Close()

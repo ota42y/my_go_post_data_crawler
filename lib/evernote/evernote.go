@@ -3,31 +3,30 @@ package evernote
 import (
 	"log"
 	"net/smtp"
+	"gopkg.in/yaml.v2"
 )
 
 type Sender struct {
-	email        string
-	gmailAccount string
-	gmailPass    string
+	EvernoteMail string
+	GmailAccount string
+	GmailPass    string
 }
 
-func NewSenderFromMap(config map[interface{}]interface{}) (sender *Sender) {
-	evernote := config["evernote_mail"].(string)
-	gmail := config["gmail_account"].(string)
-	pass := config["gmail_pass"].(string)
-	return &Sender{
-		email:        evernote,
-		gmailAccount: gmail,
-		gmailPass:    pass,
+func NewSenderFromData(data []byte) (s *Sender) {
+	s = &Sender{}
+	err := yaml.Unmarshal(data, s)
+	if err != nil {
+		s = nil
 	}
+	return
 }
 
 func (sender *Sender) SendNote(title string, text string) {
-	body := "To: " + sender.email + "\r\nSubject: " +
+	body := "To: " + sender.EvernoteMail + "\r\nSubject: " +
 	title + "\r\n\r\n" + text
-	auth := smtp.PlainAuth("",sender.gmailAccount,sender.gmailPass,"smtp.gmail.com")
-	err := smtp.SendMail("smtp.gmail.com:587",auth,sender.gmailAccount,
-	[]string{sender.email},[]byte(body))
+	auth := smtp.PlainAuth("",sender.GmailAccount,sender.GmailPass,"smtp.gmail.com")
+	err := smtp.SendMail("smtp.gmail.com:587",auth,sender.GmailAccount,
+	[]string{sender.EvernoteMail},[]byte(body))
 	if err != nil {
 		log.Fatal(err)
 	}
