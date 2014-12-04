@@ -2,6 +2,7 @@ package logger
 
 import (
 	"github.com/t-k/fluent-logger-golang/fluent"
+	"gopkg.in/yaml.v2"
 	"time"
   "fmt"
 )
@@ -26,30 +27,24 @@ func (logger *MyLogger) LogPrint(tag string, message string) {
 	logger.Print(tag, "log", message)
 }
 
-func NewFromMap(tagBasename string, config map[interface{}]interface{}) (logger *MyLogger) {
-	fluentData := config["fluentd"].(map[interface{}]interface{})
-
-	host := fluentData["host"].(string)
-	port := fluentData["port"].(int)
-	logger, err := New(tagBasename, fluent.Config{FluentPort: port, FluentHost: host})
+func NewFromData(tagBasename string, buf []byte) (logger *MyLogger) {
+	c := fluent.Config{}
+	err := yaml.Unmarshal(buf, &c)
 	if err != nil {
-		panic(err)
+		return nil
+	}
+
+	flu, err := fluent.New(c)
+	if err != nil {
+		return nil
+	}
+
+	logger = &MyLogger{
+		fluent: flu,
+		tagBasename: tagBasename,
 	}
 
 	return
-}
-
-
-func New(tagBasename string, config fluent.Config) (logger *MyLogger, err error) {
-	flu, err := fluent.New(config)
-	if err != nil {
-		return nil, err
-	}
-	logger = &MyLogger{
-		fluent: flu,
-    tagBasename: tagBasename,
-	}
-	return logger, nil
 }
 
 func (logger *MyLogger) Close() {

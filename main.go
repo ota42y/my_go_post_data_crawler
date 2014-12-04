@@ -42,7 +42,7 @@ func main() {
 	// evernote送信用
 	evernote := evernote.NewSenderFromData(loadFile(setting_home+"/evernote.yml"))
 
-	logger := logger.NewFromMap("go_cron", configData)
+	logger := logger.NewFromData("go_cron", loadFile(setting_home + "/fluent.yml"))
 	defer logger.Close()
 	logger.LogPrint("main", "start")
 
