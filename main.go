@@ -47,7 +47,7 @@ func main() {
 	logger.LogPrint("main", "start")
 
 	// hubotへのポスト用
-	sendData := sendMessage.NewSendDataFromMap(configData)
+	sendData := sendMessage.New(loadFile(setting_home + "/go_crawler_setting.yml"))
 
 	// twitter収集用
 	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home+"/twitter.yml"), sendData.Database, logger)

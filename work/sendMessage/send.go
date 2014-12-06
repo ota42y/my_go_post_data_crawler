@@ -3,24 +3,30 @@ package sendMessage
 import (
 	"../../lib/database"
 	"../../lib/sendHubot"
+	"gopkg.in/yaml.v2"
 )
+
+type Setting struct {
+	DataBaseName string
+	HubotPostPath string
+	DefaultChatRoomName string
+}
 
 type SendData struct {
 	Database *database.Database
 	Server   *sendHubot.Server
 }
 
-func NewSendDataFromMap(sendDataConfig map[interface{}]interface{}) (sendData *SendData) {
-	dsn := sendDataConfig["dsn"].(string)
-	postPath := sendDataConfig["postPath"].(string)
-	defaultRoomName := sendDataConfig["defaultRoomName"].(string)
-	return NewSendData(dsn, postPath, defaultRoomName)
-}
+func New(buf []byte) (sendData *SendData) {
+	s := &Setting{}
+	err := yaml.Unmarshal(buf, s)
+	if err != nil {
+		return nil
+	}
 
-func NewSendData(dsn string, postPath string, defaultRoomName string) (sendData *SendData) {
 	return &SendData{
-		Database: database.NewDatabase(dsn, defaultRoomName),
-		Server:   sendHubot.NewServer(postPath),
+		Database: database.NewDatabase(s.DataBaseName, s.DefaultChatRoomName),
+		Server:   sendHubot.NewServer(s.HubotPostPath),
 	}
 }
 
