@@ -11,6 +11,7 @@ import (
 	"path"
 	"regexp"
 	"time"
+	"gopkg.in/yaml.v2"
 )
 
 type ChatLog struct {
@@ -36,15 +37,21 @@ type Worker struct {
 	evernote *evernote.Sender
 }
 
-func NewWorkerFromMap(config map[interface{}]interface{}, logger *logger.MyLogger, evernote *evernote.Sender) (worker *Worker) {
-	chatLogConfig := config["chatLog"].(map[interface{}]interface{})
-	logFolder := chatLogConfig["logFolder"].(string)
-	saveFolder := chatLogConfig["saveFolder"].(string)
-	rootDir := config["rootDir"].(string)
+type Setting struct{
+	LogFolder string
+	SaveFolder string
+}
+
+func New(buf []byte, logger *logger.MyLogger, evernote *evernote.Sender) (worker *Worker) {
+	s := Setting{}
+	err := yaml.Unmarshal(buf, &s)
+	if err != nil {
+		return nil
+	}
 
 	return &Worker{
-		logFolder:  path.Join(rootDir, logFolder),
-		saveFolder: path.Join(rootDir, saveFolder),
+		logFolder:  s.LogFolder,
+		saveFolder: s.SaveFolder,
 		logger:     logger,
 		evernote: evernote,
 	}

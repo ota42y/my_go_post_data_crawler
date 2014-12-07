@@ -7,10 +7,10 @@ import (
 	"./work/chatLog"
 	"./work/twitter"
 	"github.com/robfig/cron"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"time"
+	"fmt"
 )
 
 func loadFile(path string) (buf []byte) {
@@ -21,40 +21,26 @@ func loadFile(path string) (buf []byte) {
 	return
 }
 
-func loadYaml(path string) map[interface{}]interface{} {
-	buf, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	config := make(map[interface{}]interface{})
-	err = yaml.Unmarshal(buf, &config)
-	if err != nil {
-		panic(err)
-	}
-
-	return config
-}
-
 func main() {
 	setting_home := os.Args[1]
-	configData := loadYaml(setting_home + "/go_crawler_setting.yml")
+	fmt.Println(setting_home)
 
 	// evernote送信用
 	evernote := evernote.NewSenderFromData(loadFile(setting_home+"/evernote.yml"))
 
 	logger := logger.NewFromData("go_cron", loadFile(setting_home + "/fluent.yml"))
-	defer logger.Close()
-	logger.LogPrint("main", "start")
+	//defer logger.Close()
+	//logger.LogPrint("main", "start")
 
 	// hubotへのポスト用
 	sendData := sendMessage.New(loadFile(setting_home + "/send_message.yml"))
 
 	// twitter収集用
 	twitterWorker := twitter.New(loadFile(setting_home + "/crawler.yml"),
-		loadFile(setting_home + "/twitter.yml"), sendData.Database, logger)
+	loadFile(setting_home + "/twitter.yml"), sendData.Database, logger)
 
 	// チャットログ収集用
-	chatLogWorker := chatLog.NewWorkerFromMap(configData, logger, evernote)
+	chatLogWorker := chatLog.New(loadFile(setting_home + "/chatlog.yml"), logger, evernote)
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
