@@ -5,6 +5,7 @@ import (
 	"./../../lib/database"
 	"github.com/ChimeraCoder/anaconda"
 	"./../../lib/logger"
+	"gopkg.in/yaml.v2"
 )
 
 func makePostDataFromTweet(roomName string, tweet *anaconda.Tweet) (postData *database.Post){
@@ -13,6 +14,21 @@ func makePostDataFromTweet(roomName string, tweet *anaconda.Tweet) (postData *da
 
 	return database.NewPost(roomName, "twetter: " + account_name + " " + message , "twetter:" + tweet.IdStr)
 }
+
+type Setting struct {
+	MongodbUrl string
+	DatabaseName string
+	CollectionName string
+	ScreenNames []string
+}
+
+type TwitterAuth struct {
+	ConsumerKey string
+	ConsumerSecret string
+	AccessToken string
+	AccessTokenSecret string
+}
+
 
 type Worker struct {
 	checkTwitterIdList []string
@@ -25,36 +41,30 @@ type Worker struct {
 	logger *logger.MyLogger
 }
 
-func NewWorkerFromMap(sendDataConfig map[interface{}]interface{}, twitterAuthConfig map[interface{}]interface{}, postDatabase *database.Database, logger *logger.MyLogger) (* Worker) {
-	mongodbUrl := sendDataConfig["mongodbUrl"].(string)
-
-
-	twitterData := sendDataConfig["twitter"].(map[interface{}]interface{})
-	databaseName := twitterData["databaseName"].(string)
-	collectionName := twitterData["collectionName"].(string)
-
-	checkTwitterIdList := make([]string, 0)
-	screenNames := twitterData["screenNames"].([]interface{})
-
-	for _, screenName := range screenNames{
-		checkTwitterIdList = append(checkTwitterIdList, screenName.(string))
+func New(settingBuf []byte, twitterAuthBuf []byte, db *database.Database, logger *logger.MyLogger) (* Worker) {
+	s := Setting{}
+	err := yaml.Unmarshal(settingBuf, &s)
+	if err != nil {
+		return nil
 	}
 
-	consumerKey := twitterAuthConfig["consumerKey"].(string)
-	consumerSecret := twitterAuthConfig["consumerSecret"].(string)
-	accessToken := twitterAuthConfig["accessToken"].(string)
-	accessTokenSecret := twitterAuthConfig["accessTokenSecret"].(string)
+	auth := TwitterAuth{}
+	err = yaml.Unmarshal(twitterAuthBuf, &auth)
+	if err != nil {
+		return nil
+	}
 
 	return &Worker{
-		checkTwitterIdList: checkTwitterIdList,
-		postDatabase: postDatabase,
-		mongodbData: NewMongoDBData(mongodbUrl, databaseName, collectionName),
-		consumerKey: consumerKey,
-		consumerSecret: consumerSecret,
-		accessToken: accessToken,
-		accessTokenSecret: accessTokenSecret,
+		checkTwitterIdList: s.ScreenNames,
+		mongodbData: NewMongoDBData(s.MongodbUrl, s.DatabaseName, s.CollectionName),
+		consumerKey: auth.ConsumerKey,
+		consumerSecret: auth.ConsumerSecret,
+		accessToken: auth.AccessToken,
+		accessTokenSecret: auth.AccessTokenSecret,
 		logger: logger,
+		postDatabase: db,
 	}
+
 }
 
 func (worker *Worker) Work() {
