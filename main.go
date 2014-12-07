@@ -47,10 +47,11 @@ func main() {
 	logger.LogPrint("main", "start")
 
 	// hubotへのポスト用
-	sendData := sendMessage.New(loadFile(setting_home + "/go_crawler_setting.yml"))
+	sendData := sendMessage.New(loadFile(setting_home + "/send_message.yml"))
 
 	// twitter収集用
-	twitterWorker := twitter.NewWorkerFromMap(configData, loadYaml(setting_home+"/twitter.yml"), sendData.Database, logger)
+	twitterWorker := twitter.New(loadFile(setting_home + "/crawler.yml"),
+		loadFile(setting_home + "/twitter.yml"), sendData.Database, logger)
 
 	// チャットログ収集用
 	chatLogWorker := chatLog.NewWorkerFromMap(configData, logger, evernote)
