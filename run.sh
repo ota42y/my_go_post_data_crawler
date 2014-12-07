@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go run main.go sendMessage.go $SETTING_HOME
+go run main.go $SETTING_HOME
