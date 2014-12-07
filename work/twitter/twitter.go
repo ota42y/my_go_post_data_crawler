@@ -7,21 +7,21 @@ import (
 	"net/url"
 )
 
-type MongoDBData struct{
-	url string
-	databaseName string
+type MongoDBData struct {
+	url            string
+	databaseName   string
 	collectionName string
 }
 
-func NewMongoDBData(url string, databaseName string, collectionName string) (*MongoDBData){
+func NewMongoDBData(url string, databaseName string, collectionName string) *MongoDBData {
 	return &MongoDBData{
-		url: url,
-		databaseName: databaseName,
+		url:            url,
+		databaseName:   databaseName,
 		collectionName: collectionName,
 	}
 }
 
-func registerTweets(tweets []anaconda.Tweet, mongodb *MongoDBData){
+func registerTweets(tweets []anaconda.Tweet, mongodb *MongoDBData) {
 	session, err := mgo.Dial(mongodb.url)
 	if err != nil {
 		panic(err)
@@ -57,7 +57,7 @@ func filterUnRegisterTweets(tweets []anaconda.Tweet, mongodb *MongoDBData) []ana
 
 	for _, tweet := range tweets {
 		count, _ := c.Find(bson.M{"id": tweet.Id}).Count()
-		if(count == 0){
+		if count == 0 {
 			filteredTweets = append(filteredTweets, tweet)
 		}
 	}

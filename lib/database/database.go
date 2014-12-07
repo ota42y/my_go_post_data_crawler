@@ -1,26 +1,26 @@
 package database
 
 import (
-	"time"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	_ "github.com/go-sql-driver/mysql"
 	"net/url"
+	"time"
 )
 
 type Post struct {
-	Id int64
-	RoomName string
-	Message string
+	Id        int64
+	RoomName  string
+	Message   string
 	MessageId string
 	CreatedAt time.Time
-	IsSend bool
+	IsSend    bool
 }
 
 type Database struct {
-	DefaultRoomName string
+	DefaultRoomName      string
 	sendMessageTableName string
-	db gorm.DB
+	db                   gorm.DB
 }
 
 func NewDatabase(dataSourceName string, defaultRoomName string) *Database {
@@ -34,30 +34,30 @@ func NewDatabase(dataSourceName string, defaultRoomName string) *Database {
 	db.Model(&Post{}).AddUniqueIndex("idx_message_id", "message_id")
 
 	return &Database{
-		DefaultRoomName: defaultRoomName,
+		DefaultRoomName:      defaultRoomName,
 		sendMessageTableName: "send_message",
-		db: db,
+		db:                   db,
 	}
 }
 
-func (post *Post) GetUrlValue() (postData *url.Values){
+func (post *Post) GetUrlValue() (postData *url.Values) {
 	return &url.Values{"room_name": []string{post.RoomName}, "message": []string{post.Message}}
 }
 
 // message_idで登録済みかどうかをチェックできる
 // 使わなくても問題は無い
-func NewPost(room_name string, message string, message_id string) *Post{
+func NewPost(room_name string, message string, message_id string) *Post {
 	return &Post{
-		RoomName: room_name,
-		Message: message,
+		RoomName:  room_name,
+		Message:   message,
 		MessageId: message_id,
 		CreatedAt: time.Now(),
-		IsSend: false,
+		IsSend:    false,
 	}
 }
 
 // message_idを持ったpostが存在するかどうか
-func (database *Database) GetPost(message_id string) *Post{
+func (database *Database) GetPost(message_id string) *Post {
 	var post Post
 	err := database.db.Where("message_id = ?", message_id).First(&post).Error
 	if err == gorm.RecordNotFound {
@@ -74,11 +74,11 @@ func (database *Database) SendPost(post *Post) (success bool) {
 	return err != nil
 }
 
-func (database *Database) AddNewPosts(posts []*Post) (is_success bool){
-	for _, post := range posts{
-		if(database.GetPost(post.MessageId) == nil){
+func (database *Database) AddNewPosts(posts []*Post) (is_success bool) {
+	for _, post := range posts {
+		if database.GetPost(post.MessageId) == nil {
 			err := database.db.Save(post)
-			if err != nil{
+			if err != nil {
 				return false
 
 			}
@@ -88,7 +88,7 @@ func (database *Database) AddNewPosts(posts []*Post) (is_success bool){
 	return true
 }
 
-func (database *Database) GetNoSendPosts(limit int) (posts []*Post){
+func (database *Database) GetNoSendPosts(limit int) (posts []*Post) {
 	database.db.Where("is_send = false").First(&posts)
 	return posts
 }

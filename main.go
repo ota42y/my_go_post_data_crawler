@@ -1,16 +1,16 @@
 package main
 
 import (
-	"./lib/logger"
 	"./lib/evernote"
-	"./work/sendMessage"
+	"./lib/logger"
 	"./work/chatLog"
+	"./work/sendMessage"
 	"./work/twitter"
+	"fmt"
 	"github.com/robfig/cron"
 	"io/ioutil"
 	"os"
 	"time"
-	"fmt"
 )
 
 func loadFile(path string) (buf []byte) {
@@ -26,21 +26,21 @@ func main() {
 	fmt.Println(setting_home)
 
 	// evernote送信用
-	evernote := evernote.NewSenderFromData(loadFile(setting_home+"/evernote.yml"))
+	evernote := evernote.NewSenderFromData(loadFile(setting_home + "/evernote.yml"))
 
-	logger := logger.NewFromData("go_cron", loadFile(setting_home + "/fluent.yml"))
-	//defer logger.Close()
-	//logger.LogPrint("main", "start")
+	logger := logger.NewFromData("go_cron", loadFile(setting_home+"/fluent.yml"))
+	defer logger.Close()
+	logger.LogPrint("main", "start")
 
 	// hubotへのポスト用
 	sendData := sendMessage.New(loadFile(setting_home + "/send_message.yml"))
 
 	// twitter収集用
-	twitterWorker := twitter.New(loadFile(setting_home + "/crawler.yml"),
-	loadFile(setting_home + "/twitter.yml"), sendData.Database, logger)
+	twitterWorker := twitter.New(loadFile(setting_home+"/crawler.yml"),
+		loadFile(setting_home+"/twitter.yml"), sendData.Database, logger)
 
 	// チャットログ収集用
-	chatLogWorker := chatLog.New(loadFile(setting_home + "/chatlog.yml"), logger, evernote)
+	chatLogWorker := chatLog.New(loadFile(setting_home+"/chatlog.yml"), logger, evernote)
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })

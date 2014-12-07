@@ -1,19 +1,19 @@
 package logger
 
 import (
+	"fmt"
 	"github.com/t-k/fluent-logger-golang/fluent"
 	"gopkg.in/yaml.v2"
 	"time"
-  "fmt"
 )
 
 type MyLogger struct {
-	fluent *fluent.Fluent
-  tagBasename string
+	fluent      *fluent.Fluent
+	tagBasename string
 }
 
 func (logger *MyLogger) Print(tag string, key string, message string) {
-  tagname := fmt.Sprintf("%s.%s", logger.tagBasename, tag)
+	tagname := fmt.Sprintf("%s.%s", logger.tagBasename, tag)
 	data := map[string]string{key: message}
 	logger.fluent.PostWithTime(tagname, time.Now(), data)
 	fmt.Printf("[%s][%s] %s : %s\n", time.Now(), tagname, key, message)
@@ -40,7 +40,7 @@ func NewFromData(tagBasename string, buf []byte) (logger *MyLogger) {
 	}
 
 	logger = &MyLogger{
-		fluent: flu,
+		fluent:      flu,
 		tagBasename: tagBasename,
 	}
 

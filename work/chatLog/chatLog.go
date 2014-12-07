@@ -1,17 +1,17 @@
 package chatLog
 
 import (
-	"./../../lib/logger"
 	"./../../lib/evernote"
+	"./../../lib/logger"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
 	"time"
-	"gopkg.in/yaml.v2"
 )
 
 type ChatLog struct {
@@ -34,11 +34,11 @@ type Worker struct {
 	logFolder  string
 	saveFolder string
 	logger     *logger.MyLogger
-	evernote *evernote.Sender
+	evernote   *evernote.Sender
 }
 
-type Setting struct{
-	LogFolder string
+type Setting struct {
+	LogFolder  string
 	SaveFolder string
 }
 
@@ -53,7 +53,7 @@ func New(buf []byte, logger *logger.MyLogger, evernote *evernote.Sender) (worker
 		logFolder:  s.LogFolder,
 		saveFolder: s.SaveFolder,
 		logger:     logger,
-		evernote: evernote,
+		evernote:   evernote,
 	}
 }
 
@@ -158,7 +158,7 @@ func (worker *Worker) saveYesterdayLog(logDir string, roomName string, fileName 
 		worker.logger.LogPrint("chat_log", fmt.Sprintf("send chat log %s to evernote", fileName))
 
 		// 10kb
-		byteStr := make([]byte, 0, 1024* 10)
+		byteStr := make([]byte, 0, 1024*10)
 		for _, v := range logs {
 			byteStr = append(byteStr, v.ToString()...)
 			byteStr = append(byteStr, '\n')
@@ -182,7 +182,7 @@ func (worker *Worker) saveLogToFile(filePath string, logs []ChatLog) {
 
 	for _, log := range logs {
 		if _, err = f.WriteString(log.ToString() + "\n"); err != nil {
-			worker.logger.ErrorPrint("chat_log",fmt.Sprintf("error %s", err))
+			worker.logger.ErrorPrint("chat_log", fmt.Sprintf("error %s", err))
 		}
 	}
 }
