@@ -7,8 +7,8 @@ import (
 )
 
 type Setting struct {
-	DataBaseName string
-	HubotPostPath string
+	DataBaseName        string
+	HubotPostPath       string
 	DefaultChatRoomName string
 }
 

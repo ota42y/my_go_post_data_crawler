@@ -1,9 +1,9 @@
 package evernote
 
 import (
+	"gopkg.in/yaml.v2"
 	"log"
 	"net/smtp"
-	"gopkg.in/yaml.v2"
 )
 
 type Sender struct {
@@ -23,10 +23,10 @@ func NewSenderFromData(data []byte) (s *Sender) {
 
 func (sender *Sender) SendNote(title string, text string) {
 	body := "To: " + sender.EvernoteMail + "\r\nSubject: " +
-	title + "\r\n\r\n" + text
-	auth := smtp.PlainAuth("",sender.GmailAccount,sender.GmailPass,"smtp.gmail.com")
-	err := smtp.SendMail("smtp.gmail.com:587",auth,sender.GmailAccount,
-	[]string{sender.EvernoteMail},[]byte(body))
+		title + "\r\n\r\n" + text
+	auth := smtp.PlainAuth("", sender.GmailAccount, sender.GmailPass, "smtp.gmail.com")
+	err := smtp.SendMail("smtp.gmail.com:587", auth, sender.GmailAccount,
+		[]string{sender.EvernoteMail}, []byte(body))
 	if err != nil {
 		log.Fatal(err)
 	}

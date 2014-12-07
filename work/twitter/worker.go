@@ -1,47 +1,46 @@
 package twitter
 
 import (
-	"fmt"
 	"./../../lib/database"
-	"github.com/ChimeraCoder/anaconda"
 	"./../../lib/logger"
+	"fmt"
+	"github.com/ChimeraCoder/anaconda"
 	"gopkg.in/yaml.v2"
 )
 
-func makePostDataFromTweet(roomName string, tweet *anaconda.Tweet) (postData *database.Post){
+func makePostDataFromTweet(roomName string, tweet *anaconda.Tweet) (postData *database.Post) {
 	account_name := tweet.User.ScreenName
 	message := tweet.Text
 
-	return database.NewPost(roomName, "twetter: " + account_name + " " + message , "twetter:" + tweet.IdStr)
+	return database.NewPost(roomName, "twetter: "+account_name+" "+message, "twetter:"+tweet.IdStr)
 }
 
 type Setting struct {
-	MongodbUrl string
-	DatabaseName string
+	MongodbUrl     string
+	DatabaseName   string
 	CollectionName string
-	ScreenNames []string
+	ScreenNames    []string
 }
 
 type TwitterAuth struct {
-	ConsumerKey string
-	ConsumerSecret string
-	AccessToken string
+	ConsumerKey       string
+	ConsumerSecret    string
+	AccessToken       string
 	AccessTokenSecret string
 }
 
-
 type Worker struct {
 	checkTwitterIdList []string
-	postDatabase *database.Database
-	mongodbData *MongoDBData
-	consumerKey string
-	consumerSecret string
-	accessToken string
-	accessTokenSecret string
-	logger *logger.MyLogger
+	postDatabase       *database.Database
+	mongodbData        *MongoDBData
+	consumerKey        string
+	consumerSecret     string
+	accessToken        string
+	accessTokenSecret  string
+	logger             *logger.MyLogger
 }
 
-func New(settingBuf []byte, twitterAuthBuf []byte, db *database.Database, logger *logger.MyLogger) (* Worker) {
+func New(settingBuf []byte, twitterAuthBuf []byte, db *database.Database, logger *logger.MyLogger) *Worker {
 	s := Setting{}
 	err := yaml.Unmarshal(settingBuf, &s)
 	if err != nil {
@@ -56,13 +55,13 @@ func New(settingBuf []byte, twitterAuthBuf []byte, db *database.Database, logger
 
 	return &Worker{
 		checkTwitterIdList: s.ScreenNames,
-		mongodbData: NewMongoDBData(s.MongodbUrl, s.DatabaseName, s.CollectionName),
-		consumerKey: auth.ConsumerKey,
-		consumerSecret: auth.ConsumerSecret,
-		accessToken: auth.AccessToken,
-		accessTokenSecret: auth.AccessTokenSecret,
-		logger: logger,
-		postDatabase: db,
+		mongodbData:        NewMongoDBData(s.MongodbUrl, s.DatabaseName, s.CollectionName),
+		consumerKey:        auth.ConsumerKey,
+		consumerSecret:     auth.ConsumerSecret,
+		accessToken:        auth.AccessToken,
+		accessTokenSecret:  auth.AccessTokenSecret,
+		logger:             logger,
+		postDatabase:       db,
 	}
 
 }
