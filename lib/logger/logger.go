@@ -15,8 +15,12 @@ type MyLogger struct {
 func (logger *MyLogger) Print(tag string, key string, message string) {
 	tagname := fmt.Sprintf("%s.%s", logger.tagBasename, tag)
 	data := map[string]string{key: message}
-	logger.fluent.PostWithTime(tagname, time.Now(), data)
+
 	fmt.Printf("[%s][%s] %s : %s\n", time.Now(), tagname, key, message)
+
+	if logger.fluent != nil{
+		logger.fluent.PostWithTime(tagname, time.Now(), data)
+	}
 }
 
 func (logger *MyLogger) ErrorPrint(tag string, message string) {
@@ -27,18 +31,14 @@ func (logger *MyLogger) LogPrint(tag string, message string) {
 	logger.Print(tag, "log", message)
 }
 
-func NewFromData(tagBasename string, buf []byte) (logger *MyLogger) {
+func NewFromData(tagBasename string, buf []byte) (logger *MyLogger, err error) {
 	c := fluent.Config{}
-	err := yaml.Unmarshal(buf, &c)
+	err = yaml.Unmarshal(buf, &c)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	flu, err := fluent.New(c)
-	if err != nil {
-		return nil
-	}
-
 	logger = &MyLogger{
 		fluent:      flu,
 		tagBasename: tagBasename,
@@ -48,6 +48,8 @@ func NewFromData(tagBasename string, buf []byte) (logger *MyLogger) {
 }
 
 func (logger *MyLogger) Close() {
-	logger.fluent.Close()
-	logger.fluent = nil
+	if logger.fluent != nil{
+		logger.fluent.Close()
+		logger.fluent = nil
+	}
 }
