@@ -6,6 +6,7 @@ import (
 	"./work/chatLog"
 	"./work/sendMessage"
 	"./work/twitter"
+	"./work/serverWorker"
 	"fmt"
 	"github.com/robfig/cron"
 	"io/ioutil"
@@ -52,6 +53,9 @@ func main() {
 	c.AddFunc("0 */1 * * * *", func() { sendData.Work() })
 	c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
 	c.Start()
+
+	w := serverWorker.New(logger, sendData.Database)
+	go w.Work()
 
 	for {
 		_, err := os.Stat(setting_home + "/go_crawler_setting.yml")

@@ -74,14 +74,20 @@ func (database *Database) SendPost(post *Post) (success bool) {
 	return err != nil
 }
 
+func (database *Database) AddNewPost(post *Post) (is_success bool) {
+	if database.GetPost(post.MessageId) == nil {
+		err := database.db.Save(post)
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
 func (database *Database) AddNewPosts(posts []*Post) (is_success bool) {
 	for _, post := range posts {
-		if database.GetPost(post.MessageId) == nil {
-			err := database.db.Save(post)
-			if err != nil {
-				return false
-
-			}
+		if !database.AddNewPost(post){
+			return false
 		}
 	}
 

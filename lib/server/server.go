@@ -5,7 +5,8 @@ import (
   "fmt"
   "net/http"
   "../../command/command"
-  "../../command/status"
+  "./../../lib/database"
+  "./../../lib/logger"
 )
 
 // curl -X POST -d "{\"Command\": \"status\",\"Data\":\"d\"}" http://localhost:8080/post
@@ -21,9 +22,18 @@ type Response struct{
 
 type Server struct{
   commands []command.Command
+	logger *logger.MyLogger
+	postDatabase       *database.Database
 }
 
-func (s *Server) addCommand(c command.Command){
+func New(logger *logger.MyLogger, postDatabase       *database.Database) *Server {
+	return &Server{
+		logger: logger,
+		postDatabase: postDatabase,
+	}
+}
+
+func (s *Server) AddCommand(c command.Command){
     s.commands = append(s.commands, c)
 }
 
@@ -57,8 +67,12 @@ func (s *Server) executeCommand(command string, data string, rw http.ResponseWri
 }
 
 func (s *Server) Start() {
-  s.addCommand(status.New())
-
+  s.logger.LogPrint("server", "start")
   http.HandleFunc("/", s.receivePost)
   http.ListenAndServe(":8080", nil)
+}
+
+func (s *Server) SendPost(post *database.Post) {
+	s.postDatabase.AddNewPost(post)
+	fmt.Println(post)
 }
