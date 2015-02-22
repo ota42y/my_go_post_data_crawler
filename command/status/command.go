@@ -14,4 +14,3 @@ func (s Status) IsExecute(command string) bool{
 func (s Status) Execute(data string) string{
 	return "status: server exist"
 }
-
