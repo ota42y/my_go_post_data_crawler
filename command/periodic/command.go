@@ -36,7 +36,7 @@ func (c *Command) Execute(data string) string{
 }
 
 func (c *Command) sendMessage() {
-    now := fmt.Sprintf("%d", time.Now().Unix())
+	now := fmt.Sprintf("%d", time.Now().Unix())
 	s := c.server
 	s.SendPost(database.NewPost(c.sendRoomName, "periodic: I'm alive", "periodiccommand:" + now))
 }
