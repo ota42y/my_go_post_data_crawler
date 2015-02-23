@@ -10,11 +10,14 @@ import (
 	"./work/twitter"
 	"fmt"
 	"github.com/robfig/cron"
+	"math/rand"
 	"os"
 	"time"
 )
 
 func main() {
+	rand.Seed(time.Now().Unix())
+
 	setting_home := os.Args[1]
 	fmt.Println(setting_home)
 

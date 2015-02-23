@@ -4,9 +4,11 @@ import (
 	"./../../lib/database"
 	"./../../lib/server"
 	"fmt"
+	"github.com/mrjones/oauth"
 	"github.com/ota42y/go-tumblr/tumblr"
 	"github.com/robfig/cron"
 	"gopkg.in/yaml.v2"
+	"math/rand"
 	"time"
 )
 
@@ -15,6 +17,7 @@ type Setting struct {
 	ConsumerSecret    string
 	AccessToken       string
 	AccessTokenSecret string
+	BlogUrl           string
 }
 
 type Command struct {
@@ -32,15 +35,26 @@ func New(server *server.Server, sendRoomName string, setting []byte) (c *Command
 		return nil
 	}
 
+	t := tumblr.New(s.ConsumerKey, s.ConsumerSecret)
+	token := &oauth.AccessToken{
+		Token:  s.AccessToken,
+		Secret: s.AccessTokenSecret,
+	}
+
+	blogApi := t.NewBlogApi(s.BlogUrl, token)
+
 	c = &Command{
 		server:       server,
 		sendRoomName: sendRoomName,
 		cron:         cron.New(),
 		isStart:      false,
-		blog:         nil,
+		blog:         blogApi,
 	}
 
 	c.cron.AddFunc("*/30 * * * * *", func() { c.sendMessage() })
+	fmt.Println("message")
+	c.sendMessage()
+	fmt.Println("end")
 
 	return c
 }
@@ -62,6 +76,21 @@ func (c *Command) Execute(data string) string {
 }
 
 func (c *Command) sendMessage() {
+	// 投稿数をとってくる
+	_, b, err := c.blog.Info()
+	if err != nil {
+		message := fmt.Sprintf("blog.Info error %v", err)
+		c.server.LogPrint("pomodoro", message)
+		return
+	}
+
+	// 投稿数の取得
+	postNum := rand.Int() % b.Posts
+	fmt.Println("post num %d", postNum)
+
+	// offset指定できるようにしないとだめっぽい
+	
+
 	now := fmt.Sprintf("%d", time.Now().Unix())
 	s := c.server
 	s.SendPost(database.NewPost(c.sendRoomName, "pomodoro: 進捗どうですか？", "pomodorocommand:"+now))

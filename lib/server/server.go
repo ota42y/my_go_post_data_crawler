@@ -74,5 +74,8 @@ func (s *Server) Start() {
 
 func (s *Server) SendPost(post *database.Post) {
 	s.postDatabase.AddNewPost(post)
-	fmt.Println(post)
+}
+
+func (s *Server) LogPrint(tag string, message string) {
+	s.logger.LogPrint(tag, message)
 }
