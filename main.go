@@ -3,18 +3,21 @@ package main
 import (
 	"./lib/evernote"
 	"./lib/logger"
+	"./util"
 	"./work/chatLog"
 	"./work/sendMessage"
-	"./work/twitter"
 	"./work/serverWorker"
-	"./util"
+	"./work/twitter"
 	"fmt"
 	"github.com/robfig/cron"
+	"math/rand"
 	"os"
 	"time"
 )
 
 func main() {
+	rand.Seed(time.Now().Unix())
+
 	setting_home := os.Args[1]
 	fmt.Println(setting_home)
 
@@ -22,7 +25,7 @@ func main() {
 	evernote := evernote.NewSenderFromData(util.LoadFile(setting_home + "/evernote.yml"))
 
 	logger, err := logger.NewFromData("go_cron", util.LoadFile(setting_home+"/fluent.yml"))
-	if err != nil{
+	if err != nil {
 		logger.LogPrint("main", "----------")
 		logger.LogPrint("main", "no fluentd")
 		logger.LogPrint("main", "----------")

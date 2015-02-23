@@ -86,7 +86,7 @@ func (database *Database) AddNewPost(post *Post) (is_success bool) {
 
 func (database *Database) AddNewPosts(posts []*Post) (is_success bool) {
 	for _, post := range posts {
-		if !database.AddNewPost(post){
+		if !database.AddNewPost(post) {
 			return false
 		}
 	}

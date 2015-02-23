@@ -18,7 +18,7 @@ func (logger *MyLogger) Print(tag string, key string, message string) {
 
 	fmt.Printf("[%s][%s] %s : %s\n", time.Now(), tagname, key, message)
 
-	if logger.fluent != nil{
+	if logger.fluent != nil {
 		logger.fluent.PostWithTime(tagname, time.Now(), data)
 	}
 }
@@ -48,7 +48,7 @@ func NewFromData(tagBasename string, buf []byte) (logger *MyLogger, err error) {
 }
 
 func (logger *MyLogger) Close() {
-	if logger.fluent != nil{
+	if logger.fluent != nil {
 		logger.fluent.Close()
 		logger.fluent = nil
 	}

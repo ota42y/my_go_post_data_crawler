@@ -3,58 +3,72 @@ package pomodoro
 import (
 	"./../../lib/database"
 	"./../../lib/server"
-	"github.com/robfig/cron"
-	"time"
 	"fmt"
+	"github.com/mrjones/oauth"
 	"github.com/ota42y/go-tumblr/tumblr"
+	"github.com/robfig/cron"
 	"gopkg.in/yaml.v2"
+	"math/rand"
+	"time"
 )
 
 type Setting struct {
-	ConsumerKey string
-	ConsumerSecret string
-	AccessToken string
+	ConsumerKey       string
+	ConsumerSecret    string
+	AccessToken       string
 	AccessTokenSecret string
+	BlogUrl           string
 }
 
-type Command struct{
-	server *server.Server
+type Command struct {
+	server       *server.Server
 	sendRoomName string
-	cron *cron.Cron
-	isStart bool
-	blog *tumblr.BlogApi
+	cron         *cron.Cron
+	isStart      bool
+	blog         *tumblr.BlogApi
 }
 
-func New(server *server.Server, sendRoomName string, setting []byte) (c *Command){
+func New(server *server.Server, sendRoomName string, setting []byte) (c *Command) {
 	s := Setting{}
 	err := yaml.Unmarshal(setting, &s)
 	if err != nil {
 		return nil
 	}
 
+	t := tumblr.New(s.ConsumerKey, s.ConsumerSecret)
+	token := &oauth.AccessToken{
+		Token:  s.AccessToken,
+		Secret: s.AccessTokenSecret,
+	}
+
+	blogApi := t.NewBlogApi(s.BlogUrl, token)
+
 	c = &Command{
-		server: server,
+		server:       server,
 		sendRoomName: sendRoomName,
-		cron: cron.New(),
-		isStart: false,
-		blog: nil,
+		cron:         cron.New(),
+		isStart:      false,
+		blog:         blogApi,
 	}
 
 	c.cron.AddFunc("*/30 * * * * *", func() { c.sendMessage() })
+	fmt.Println("message")
+	c.sendMessage()
+	fmt.Println("end")
 
 	return c
 }
 
-func (c *Command) IsExecute(command string) bool{
+func (c *Command) IsExecute(command string) bool {
 	return command == "pomodoro"
 }
 
-func (c *Command) Execute(data string) string{
+func (c *Command) Execute(data string) string {
 	if c.isStart {
 		c.cron.Stop()
 		c.isStart = false
 		return "pomodoro: stop"
-	}else{
+	} else {
 		c.cron.Start()
 		c.isStart = true
 		return "pomodoro: start"
@@ -62,7 +76,22 @@ func (c *Command) Execute(data string) string{
 }
 
 func (c *Command) sendMessage() {
+	// 投稿数をとってくる
+	_, b, err := c.blog.Info()
+	if err != nil {
+		message := fmt.Sprintf("blog.Info error %v", err)
+		c.server.LogPrint("pomodoro", message)
+		return
+	}
+
+	// 投稿数の取得
+	postNum := rand.Int() % b.Posts
+	fmt.Println("post num %d", postNum)
+
+	// offset指定できるようにしないとだめっぽい
+	
+
 	now := fmt.Sprintf("%d", time.Now().Unix())
 	s := c.server
-	s.SendPost(database.NewPost(c.sendRoomName, "pomodoro: 進捗どうですか？", "pomodorocommand:" + now))
+	s.SendPost(database.NewPost(c.sendRoomName, "pomodoro: 進捗どうですか？", "pomodorocommand:"+now))
 }
