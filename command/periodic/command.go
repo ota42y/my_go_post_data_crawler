@@ -21,7 +21,7 @@ func New(server *server.Server, sendRoomName string) (c *Command) {
 		cron:         cron.New(),
 	}
 
-	c.cron.AddFunc("0 */30 7-23 * * *", func() { c.sendMessage() })
+	c.cron.AddFunc("0 0 7-23 * * *", func() { c.sendMessage() })
 	c.cron.Start()
 
 	return c
