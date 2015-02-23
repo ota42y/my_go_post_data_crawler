@@ -11,4 +11,3 @@ func LoadFile(path string) (buf []byte) {
 	}
 	return
 }
-

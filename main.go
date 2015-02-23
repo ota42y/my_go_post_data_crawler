@@ -3,11 +3,11 @@ package main
 import (
 	"./lib/evernote"
 	"./lib/logger"
+	"./util"
 	"./work/chatLog"
 	"./work/sendMessage"
-	"./work/twitter"
 	"./work/serverWorker"
-	"./util"
+	"./work/twitter"
 	"fmt"
 	"github.com/robfig/cron"
 	"os"
@@ -22,7 +22,7 @@ func main() {
 	evernote := evernote.NewSenderFromData(util.LoadFile(setting_home + "/evernote.yml"))
 
 	logger, err := logger.NewFromData("go_cron", util.LoadFile(setting_home+"/fluent.yml"))
-	if err != nil{
+	if err != nil {
 		logger.LogPrint("main", "----------")
 		logger.LogPrint("main", "no fluentd")
 		logger.LogPrint("main", "----------")
