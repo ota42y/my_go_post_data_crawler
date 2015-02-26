@@ -9,6 +9,7 @@ import (
 	"github.com/robfig/cron"
 	"gopkg.in/yaml.v2"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -51,11 +52,7 @@ func New(server *server.Server, sendRoomName string, setting []byte) (c *Command
 		blog:         blogApi,
 	}
 
-	c.cron.AddFunc("*/30 * * * * *", func() { c.sendMessage() })
-	fmt.Println("message")
-	c.sendMessage()
-	fmt.Println("end")
-
+	c.cron.AddFunc("0 */30 * * * *", func() { c.sendMessage() })
 	return c
 }
 
@@ -86,12 +83,38 @@ func (c *Command) sendMessage() {
 
 	// 投稿数の取得
 	postNum := rand.Int() % b.Posts
-	fmt.Println("post num %d", postNum)
 
-	// offset指定できるようにしないとだめっぽい
-	
+	// ランダムに投稿を取ってくる
+	params := make(map[string]string)
+	params["offset"] = strconv.Itoa(postNum)
+	params["limit"] = "1"
+	_, posts, err := c.blog.Photo(&params)
+	if err != nil {
+		message := fmt.Sprintf("blog.Photos error %v", err)
+		c.server.LogPrint("pomodoro", message)
+		return
+	}
 
+	if len(*posts) == 0 {
+		c.server.LogPrint("pomodoro", "no posts")
+		return
+	}
+
+	// 画像のURLを取り出す
+	post := (*posts)[0]
+	if len(post.Photos) == 0 {
+		c.server.LogPrint("pomodoro", "no photos")
+		return
+	}
+	if len(post.Photos[0].AltSizes) == 0 {
+		c.server.LogPrint("pomodoro", "no sizes")
+		return
+	}
+	url := post.Photos[0].AltSizes[0].Url
+
+	// 画像付きで進捗を聞く
 	now := fmt.Sprintf("%d", time.Now().Unix())
 	s := c.server
+	s.SendPost(database.NewPost(c.sendRoomName, "pomodoro: "+url, "pomodorocommand:img"+now))
 	s.SendPost(database.NewPost(c.sendRoomName, "pomodoro: 進捗どうですか？", "pomodorocommand:"+now))
 }
