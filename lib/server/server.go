@@ -7,13 +7,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 )
 
 // curl -X POST -d "{\"Command\": \"status\",\"Data\":\"d\"}" http://localhost:8080/post
 
-type Post struct {
-	Command string
-	Data    string
+var commandRegExp, _ = regexp.Compile("^(.+)( (.*))")
+
+type PostData struct {
+	Message string
 }
 
 type Response struct {
@@ -38,16 +40,29 @@ func (s *Server) AddCommand(c command.Command) {
 }
 
 func (s *Server) receivePost(rw http.ResponseWriter, r *http.Request) {
+	var post PostData
+
 	decoder := json.NewDecoder(r.Body)
-
-	var t Post
-	err := decoder.Decode(&t)
-
+	err := decoder.Decode(&post)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(rw, "read error %s\n", err)
+		return
 	}
 
-	s.executeCommand(t.Command, t.Data, rw)
+	match := commandRegExp.FindSubmatch([]byte(post.Message))
+	if len(match) == 0 {
+		fmt.Fprintf(rw, "regexp error %s\n", post.Message)
+		return
+	}
+
+	cmd := string(match[1])
+
+	data := ""
+	if 2 < len(match) {
+		data = string(match[3])
+	}
+
+	s.executeCommand(cmd, data, rw)
 }
 
 func (s *Server) executeCommand(command string, data string, rw http.ResponseWriter) {
@@ -62,7 +77,7 @@ func (s *Server) executeCommand(command string, data string, rw http.ResponseWri
 	enc := json.NewEncoder(rw)
 	err := enc.Encode(&res)
 	if err != nil {
-		fmt.Printf("%d\n", err)
+		fmt.Fprintf(rw, "resopnse error %s\n", err)
 	}
 }
 
