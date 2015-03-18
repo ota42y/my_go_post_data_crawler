@@ -6,6 +6,7 @@ import (
 	"./../../lib/logger"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 )
@@ -42,10 +43,16 @@ func (s *Server) AddCommand(c command.Command) {
 func (s *Server) receivePost(rw http.ResponseWriter, r *http.Request) {
 	var post PostData
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&post)
+	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Fprintf(rw, "read error %s\n", err)
+		return
+	}
+	fmt.Println("get ", string(b))
+
+	err = json.Unmarshal(b, &post)
+	if err != nil {
+		fmt.Fprintf(rw, "unmarshal error %s\n", err)
 		return
 	}
 
