@@ -13,7 +13,7 @@ import (
 
 // curl -X POST -d "{\"Command\": \"status\",\"Data\":\"d\"}" http://localhost:8080/post
 
-var commandRegExp, _ = regexp.Compile("^(.+)( (.*))")
+var commandWithOptionRegExp, _ = regexp.Compile("^(.+)( (.+))")
 
 type PostData struct {
 	Message string
@@ -55,19 +55,22 @@ func (s *Server) receivePost(rw http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(rw, "unmarshal error %s\n", err)
 		return
 	}
+	fmt.Println("message ", post.Message)
 
-	match := commandRegExp.FindSubmatch([]byte(post.Message))
-	if len(match) == 0 {
-		fmt.Fprintf(rw, "regexp error %s\n", post.Message)
-		return
-	}
-
-	cmd := string(match[1])
-
+	cmd := ""
 	data := ""
+
+	match := commandWithOptionRegExp.FindSubmatch([]byte(post.Message))
 	if 2 < len(match) {
-		data = string(match[3])
+		cmd = string(match[1])
+		if 2 < len(match) {
+			data = string(match[3])
+		}
+	} else {
+		cmd = post.Message
 	}
+	fmt.Println("cmd ", cmd)
+	fmt.Println("data ", data)
 
 	s.executeCommand(cmd, data, rw)
 }
