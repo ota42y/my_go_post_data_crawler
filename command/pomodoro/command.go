@@ -1,6 +1,7 @@
 package pomodoro
 
 import (
+	"../command"
 	"./../../lib/database"
 	"./../../lib/server"
 	"fmt"
@@ -56,18 +57,20 @@ func New(server *server.Server, sendRoomName string, setting []byte) (c *Command
 	return c
 }
 
-func (c *Command) IsExecute(command string) bool {
-	return command == "pomodoro"
+func (c *Command) IsExecute(order command.Order) bool {
+	return order.Name == "pomodoro"
 }
 
-func (c *Command) Execute(data string) string {
+func (c *Command) Execute(order command.Order) string {
 	if c.isStart {
 		c.cron.Stop()
 		c.isStart = false
+		c.sendRoomName = order.Room
 		return "pomodoro: stop"
 	} else {
 		c.cron.Start()
 		c.isStart = true
+		c.sendRoomName = order.Room
 		return "pomodoro: start"
 	}
 }
