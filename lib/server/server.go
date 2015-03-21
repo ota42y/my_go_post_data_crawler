@@ -17,6 +17,8 @@ var commandWithOptionRegExp, _ = regexp.Compile("^(.+)( (.+))")
 
 type PostData struct {
 	Message string
+	Room    string
+	User    string
 }
 
 type Response struct {
@@ -55,32 +57,33 @@ func (s *Server) receivePost(rw http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(rw, "unmarshal error %s\n", err)
 		return
 	}
-	fmt.Println("message ", post.Message)
+	fmt.Println("post ", post)
 
-	cmd := ""
-	data := ""
-
+	var order command.Order
 	match := commandWithOptionRegExp.FindSubmatch([]byte(post.Message))
 	if 2 < len(match) {
-		cmd = string(match[1])
+		order.Name = string(match[1])
 		if 2 < len(match) {
-			data = string(match[3])
+			order.Data = string(match[3])
 		}
 	} else {
-		cmd = post.Message
+		order.Name = post.Message
 	}
-	fmt.Println("cmd ", cmd)
-	fmt.Println("data ", data)
 
-	s.executeCommand(cmd, data, rw)
+	order.Room = post.Room
+	order.User = post.User
+
+	s.executeCommand(order, rw)
 }
 
-func (s *Server) executeCommand(command string, data string, rw http.ResponseWriter) {
+func (s *Server) executeCommand(order command.Order, rw http.ResponseWriter) {
+	fmt.Println("order ", order)
+
 	var res Response
 
 	for _, listener := range s.commands {
-		if listener.IsExecute(command) {
-			res.Result = append(res.Result, listener.Execute(data))
+		if listener.IsExecute(order) {
+			res.Result = append(res.Result, listener.Execute(order))
 		}
 	}
 

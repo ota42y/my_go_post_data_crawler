@@ -1,6 +1,7 @@
 package periodic
 
 import (
+	"../command"
 	"./../../lib/database"
 	"./../../lib/server"
 	"fmt"
@@ -27,11 +28,11 @@ func New(server *server.Server, sendRoomName string) (c *Command) {
 	return c
 }
 
-func (c *Command) IsExecute(command string) bool {
-	return command == "periodic"
+func (c *Command) IsExecute(order command.Order) bool {
+	return order.Name == "periodic"
 }
 
-func (c *Command) Execute(data string) string {
+func (c *Command) Execute(order command.Order) string {
 	return "status: periodic exist"
 }
 
