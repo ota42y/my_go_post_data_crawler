@@ -32,8 +32,8 @@ type Command struct {
 	startTime    time.Time
 }
 
-var onePomodoro = 1 * time.Minute
-var interval = 1 * time.Minute
+var onePomodoro = 25 * time.Minute
+var interval = 5 * time.Minute
 
 func New(server *server.Server, sendRoomName string, setting []byte) (c *Command) {
 	s := Setting{}
