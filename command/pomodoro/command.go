@@ -27,8 +27,13 @@ type Command struct {
 	sendRoomName string
 	cron         *cron.Cron
 	isStart      bool
+	isPomodoro   bool
 	blog         *tumblr.BlogApi
+	startTime    time.Time
 }
+
+var onePomodoro = 1 * time.Minute
+var interval = 1 * time.Minute
 
 func New(server *server.Server, sendRoomName string, setting []byte) (c *Command) {
 	s := Setting{}
@@ -50,10 +55,12 @@ func New(server *server.Server, sendRoomName string, setting []byte) (c *Command
 		sendRoomName: sendRoomName,
 		cron:         cron.New(),
 		isStart:      false,
+		isPomodoro:   false,
 		blog:         blogApi,
 	}
 
-	c.cron.AddFunc("0 */30 * * * *", func() { c.sendMessage() })
+	c.cron.AddFunc("0 */1 * * * *", func() { c.check() })
+	c.cron.Start()
 	return c
 }
 
@@ -63,19 +70,44 @@ func (c *Command) IsExecute(order command.Order) bool {
 
 func (c *Command) Execute(order command.Order) string {
 	if c.isStart {
-		c.cron.Stop()
 		c.isStart = false
 		c.sendRoomName = order.Room
 		return "pomodoro: stop"
 	} else {
-		c.cron.Start()
 		c.isStart = true
 		c.sendRoomName = order.Room
+		c.startTime = time.Now()
+		c.isPomodoro = true
 		return "pomodoro: start"
 	}
 }
 
-func (c *Command) sendMessage() {
+func (c *Command) check() {
+	if c.isStart {
+		sub := time.Now().Sub(c.startTime)
+		if c.isPomodoro {
+			if onePomodoro < sub {
+				c.isPomodoro = false
+				c.startTime = time.Now()
+				c.sendEndMessage()
+			}
+		} else {
+			if interval < sub {
+				c.isPomodoro = true
+				c.startTime = time.Now()
+				c.sendStartMessage()
+			}
+		}
+	}
+}
+
+func (c *Command) sendStartMessage() {
+	now := fmt.Sprintf("%d", time.Now().Unix())
+	s := c.server
+	s.SendPost(database.NewPost(c.sendRoomName, "pomodoro: start", "pomodorocommand:img"+now))
+}
+
+func (c *Command) sendEndMessage() {
 	// 投稿数をとってくる
 	_, b, err := c.blog.Info()
 	if err != nil {

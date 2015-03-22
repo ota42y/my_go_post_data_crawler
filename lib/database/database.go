@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -80,6 +81,7 @@ func (database *Database) AddNewPost(post *Post) (is_success bool) {
 		if err != nil {
 			return false
 		}
+		fmt.Println("add post %v", post)
 	}
 	return true
 }
@@ -95,6 +97,6 @@ func (database *Database) AddNewPosts(posts []*Post) (is_success bool) {
 }
 
 func (database *Database) GetNoSendPosts(limit int) (posts []*Post) {
-	database.db.Where("is_send = false").First(&posts)
+	database.db.Where("is_send = false").Limit(limit).Find(&posts)
 	return posts
 }
