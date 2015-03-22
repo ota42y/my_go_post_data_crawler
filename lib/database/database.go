@@ -95,6 +95,6 @@ func (database *Database) AddNewPosts(posts []*Post) (is_success bool) {
 }
 
 func (database *Database) GetNoSendPosts(limit int) (posts []*Post) {
-	database.db.Where("is_send = false").First(&posts)
+	database.db.Where("is_send = false").Limit(limit).Find(&posts)
 	return posts
 }
