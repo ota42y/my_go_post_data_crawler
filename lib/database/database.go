@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -80,6 +81,7 @@ func (database *Database) AddNewPost(post *Post) (is_success bool) {
 		if err != nil {
 			return false
 		}
+		fmt.Println("add post %v", post)
 	}
 	return true
 }
