@@ -30,7 +30,7 @@ func New(logger *logger.MyLogger, postDatabase *database.Database, settingHome s
 func (w *Worker) Work() {
 	s := w.s
 	s.AddCommand(status.New())
-	s.AddCommand(periodic.New(w.s, w.postDatabase.DefaultRoomName))
+	s.AddCommand(periodic.New(w.s, w.postDatabase.LogRoomName))
 	s.AddCommand(pomodoro.New(w.s, w.postDatabase.DefaultRoomName, util.LoadFile(w.settingHome+"/tumblr.yml")))
 
 	s.Start()

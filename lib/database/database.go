@@ -19,12 +19,13 @@ type Post struct {
 }
 
 type Database struct {
+	LogRoomName          string
 	DefaultRoomName      string
 	sendMessageTableName string
 	db                   gorm.DB
 }
 
-func NewDatabase(dataSourceName string, defaultRoomName string) *Database {
+func NewDatabase(dataSourceName string, defaultRoomName string, logRoomName string) *Database {
 	db, err := gorm.Open("mysql", dataSourceName)
 
 	if err != nil {
@@ -35,6 +36,7 @@ func NewDatabase(dataSourceName string, defaultRoomName string) *Database {
 	db.Model(&Post{}).AddUniqueIndex("idx_message_id", "message_id")
 
 	return &Database{
+		LogRoomName: logRoomName,
 		DefaultRoomName:      defaultRoomName,
 		sendMessageTableName: "send_message",
 		db:                   db,
