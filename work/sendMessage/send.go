@@ -10,6 +10,7 @@ type Setting struct {
 	DataBaseName        string
 	HubotPostPath       string
 	DefaultChatRoomName string
+	LogRoomName         string
 }
 
 type SendData struct {
@@ -25,7 +26,7 @@ func New(buf []byte) (sendData *SendData) {
 	}
 
 	return &SendData{
-		Database: database.NewDatabase(s.DataBaseName, s.DefaultChatRoomName),
+		Database: database.NewDatabase(s.DataBaseName, s.DefaultChatRoomName, s.LogRoomName),
 		Server:   sendHubot.NewServer(s.HubotPostPath),
 	}
 }
