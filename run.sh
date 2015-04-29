@@ -1,3 +1,4 @@
 #!/bin/bash
 
-go run main.go $SETTING_HOME
+gom install
+gom run main.go $SETTING_HOME
