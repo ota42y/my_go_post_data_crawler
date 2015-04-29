@@ -2,3 +2,5 @@
 main
 **/vendor/bundle
 .DS_Store
+_vendor/
+test.go

@@ -36,7 +36,7 @@ func NewDatabase(dataSourceName string, defaultRoomName string, logRoomName stri
 	db.Model(&Post{}).AddUniqueIndex("idx_message_id", "message_id")
 
 	return &Database{
-		LogRoomName: logRoomName,
+		LogRoomName:          logRoomName,
 		DefaultRoomName:      defaultRoomName,
 		sendMessageTableName: "send_message",
 		db:                   db,

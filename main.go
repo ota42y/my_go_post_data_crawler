@@ -1,13 +1,16 @@
 package main
 
 import (
+	"./config"
 	"./lib/evernote"
 	"./lib/logger"
 	"./util"
+	"./work/backup/mongodb"
 	"./work/chatLog"
 	"./work/sendMessage"
 	"./work/serverWorker"
 	"./work/twitter"
+	"./worker"
 	"fmt"
 	"github.com/robfig/cron"
 	"math/rand"
@@ -43,10 +46,17 @@ func main() {
 	// チャットログ収集用
 	chatLogWorker := chatLog.New(util.LoadFile(setting_home+"/chatlog.yml"), logger, evernote)
 
+	// mongodbバックアップ用
+	dailyWorker := worker.NewWorker()
+	dailyWorker.AddWork(mongodb.NewMongodb(
+		config.NewMongodbBackupFromData(util.LoadFile(setting_home+"/mongodb_backup.yml")),
+		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml"))))
+
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
 	c.AddFunc("0 */1 * * * *", func() { sendData.Work() })
 	c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
+	c.AddFunc("0 2 * * * *", func() { dailyWorker.Work() })
 	c.Start()
 
 	w := serverWorker.New(logger, sendData.Database, setting_home)
