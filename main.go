@@ -47,8 +47,8 @@ func main() {
 	chatLogWorker := chatLog.New(util.LoadFile(setting_home+"/chatlog.yml"), logger, evernote)
 
 	// mongodbバックアップ用
-	dailyWorker := worker.NewWorker()
-	dailyWorker.AddWork(mongodb.NewMongodb(
+	hourlyWorker := worker.NewWorker()
+	hourlyWorker.AddWork(mongodb.NewMongodb(
 		config.NewMongodbBackupFromData(util.LoadFile(setting_home+"/mongodb_backup.yml")),
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
 		logger))
@@ -57,7 +57,7 @@ func main() {
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
 	c.AddFunc("0 */1 * * * *", func() { sendData.Work() })
 	c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
-	c.AddFunc("0 2 * * * *", func() { dailyWorker.Work() })
+	c.AddFunc("0 2 * * * *", func() { hourlyWorker.Work() })
 	c.Start()
 
 	w := serverWorker.New(logger, sendData.Database, setting_home)
