@@ -91,9 +91,10 @@ func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
 
 	// mongodump --host localhost --db ${DB_NAME} --collection ${COLLECTION_NAME} -q "{time : { \$gte : 20150427, \$lt : ISODate(\"2015-04-26T00:00:00+09:00\") } }"
 	query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
-	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s -u %s -p %s", m.mongo.URL, m.mongo.Database, query, saveFolder, m.mongo.User, m.mongo.Pass)
-
+	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s", m.mongo.URL, m.mongo.Database, query, saveFolder)
 	m.logger.Info(tagName, "parse %s", cmd)
+	cmd = fmt.Sprintf("%s -u %s -p %s", cmd, m.mongo.User, m.mongo.Pass)
+
 	args, err := shellwords.Parse(cmd)
 	if err != nil {
 		m.logger.Error(tagName, err.Error())
