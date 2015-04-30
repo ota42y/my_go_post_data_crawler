@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"../../../config"
+	"../../../lib/logger"
 	"fmt"
 	"github.com/mattn/go-shellwords"
 	"gopkg.in/mgo.v2"
@@ -11,17 +12,21 @@ import (
 	"time"
 )
 
+var tagName = "backup.mongodb"
+
 // Mongodb is mongodb daily backup work
 type Mongodb struct {
 	backup *config.MongodbBackup
 	mongo  *config.MongodbDatabase
+	logger logger.Logger
 }
 
 // NewMongodb return Mongodb struct
-func NewMongodb(bk *config.MongodbBackup, mongo *config.MongodbDatabase) *Mongodb {
+func NewMongodb(bk *config.MongodbBackup, mongo *config.MongodbDatabase, logger logger.Logger) *Mongodb {
 	return &Mongodb{
 		backup: bk,
 		mongo:  mongo,
+		logger: logger,
 	}
 }
 
@@ -32,6 +37,8 @@ func (m *Mongodb) Execute() {
 }
 
 func (m *Mongodb) backupData() {
+	m.logger.Info(tagName, "bakup start")
+
 	// create date
 	start := time.Now().AddDate(0, 0, -3)
 	start = start.Truncate(time.Hour * 24).Add(time.Hour * -9)
@@ -40,7 +47,9 @@ func (m *Mongodb) backupData() {
 	// reset workspace
 	err := os.RemoveAll(m.backup.Workspace)
 	if err != nil {
-		panic(err)
+		m.logger.Error(tagName, "os.RemoveAll(%s) error", m.backup.Workspace)
+		m.logger.Error(tagName, err.Error())
+		return
 	}
 	saveFolder := path.Join(m.backup.Workspace, end.Format("2006-01-02"))
 	if _, err := os.Stat(saveFolder); os.IsNotExist(err) {
@@ -84,18 +93,19 @@ func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
 	query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
 	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s -u %s -p %s", m.mongo.URL, m.mongo.Database, query, saveFolder, m.mongo.User, m.mongo.Pass)
 
-	fmt.Println(cmd)
+	m.logger.Info(tagName, "parse %s", cmd)
 	args, err := shellwords.Parse(cmd)
 	if err != nil {
-		panic(err)
+		m.logger.Error(tagName, err.Error())
+		return
 	}
 
+	m.logger.Info(tagName, "execute %s", cmd)
 	out, err := exec.Command(args[0], args[1:]...).Output()
-	fmt.Println(string(out))
+	m.logger.Info(tagName, "execute end %s", string(out))
+
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("error")
-		panic(err)
+		m.logger.Error(tagName, err.Error())
 	}
 }
 
@@ -108,22 +118,24 @@ func (m *Mongodb) archive(today time.Time, saveFolder string) {
 	filePath := path.Join(archiveFolder, today.Format("2006-01-02")+".zip")
 
 	cmd := fmt.Sprintf("zip -r %s %s", filePath, saveFolder)
-	fmt.Println(cmd)
+	m.logger.Info(tagName, "parse %s", cmd)
+
 	args, err := shellwords.Parse(cmd)
 	if err != nil {
-		panic(err)
+		m.logger.Error(tagName, err.Error())
 	}
 
+	m.logger.Info(tagName, "execute %s", cmd)
 	out, err := exec.Command(args[0], args[1:]...).Output()
-	fmt.Println(string(out))
+	m.logger.Info(tagName, "execute end %s", string(out))
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("error")
-		panic(err)
+		m.logger.Error(tagName, err.Error())
 	}
 }
 
 func (m *Mongodb) createExpireIndex() {
+	m.logger.Info(tagName, "create ExpireInex")
+
 	collections := m.getAllCollectionNames()
 	for _, collection := range collections {
 		m.addIndex(collection)
@@ -131,9 +143,12 @@ func (m *Mongodb) createExpireIndex() {
 }
 
 func (m *Mongodb) addIndex(collection string) {
+	m.logger.Info(tagName, "add index "+collection)
+
 	session, err := mgo.Dial(m.mongo.GetDialURL())
 	if err != nil {
-		panic(err)
+		m.logger.Error(tagName, err.Error())
+		return
 	}
 	defer session.Close()
 
@@ -145,6 +160,6 @@ func (m *Mongodb) addIndex(collection string) {
 	}
 	err = c.EnsureIndex(index)
 	if err != nil {
-		panic(err)
+		m.logger.Error(tagName, err.Error())
 	}
 }
