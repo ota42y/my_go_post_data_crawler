@@ -11,7 +11,7 @@ import (
 var testCollections = []string{"test1", "test2", "test3"}
 
 func deleteAllData(mongo *config.MongodbDatabase) bool {
-	session, err := mgo.Dial(mongo.GetDialUrl())
+	session, err := mgo.Dial(mongo.GetDialURL())
 	if err != nil {
 		return false
 	}
@@ -29,7 +29,7 @@ func deleteAllData(mongo *config.MongodbDatabase) bool {
 	return true
 }
 func createTestData(mongo *config.MongodbDatabase) bool {
-	session, err := mgo.Dial(mongo.GetDialUrl())
+	session, err := mgo.Dial(mongo.GetDialURL())
 	if err != nil {
 		return false
 	}
@@ -50,7 +50,7 @@ func createTestData(mongo *config.MongodbDatabase) bool {
 }
 
 func checkExpireIndexExist(mongo *config.MongodbDatabase) bool {
-	session, err := mgo.Dial(mongo.GetDialUrl())
+	session, err := mgo.Dial(mongo.GetDialURL())
 	if err != nil {
 		return false
 	}
@@ -84,7 +84,7 @@ func TestSomething(t *testing.T) {
 	}
 
 	mongo := &config.MongodbDatabase{
-		Url:      "localhost",
+		URL:      "localhost",
 		User:     "",
 		Pass:     "",
 		Database: "work_backup_mongodb_test",
@@ -106,7 +106,7 @@ func TestSomething(t *testing.T) {
 
 			Convey("return empty list", func() {
 				So(deleteAllData(mongo), ShouldBeTrue)
-				So(m.getAllCollectionNames(), ShouldResemble, make([]string, 0))
+				So(m.getAllCollectionNames(), ShouldBeEmpty)
 			})
 		})
 
