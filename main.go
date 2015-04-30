@@ -50,7 +50,8 @@ func main() {
 	dailyWorker := worker.NewWorker()
 	dailyWorker.AddWork(mongodb.NewMongodb(
 		config.NewMongodbBackupFromData(util.LoadFile(setting_home+"/mongodb_backup.yml")),
-		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml"))))
+		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
+		logger))
 
 	c := cron.New()
 	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
