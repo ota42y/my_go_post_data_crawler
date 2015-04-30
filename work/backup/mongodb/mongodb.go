@@ -18,9 +18,9 @@ type Mongodb struct {
 }
 
 // NewMongodb return Mongodb struct
-func NewMongodb(c *config.MongodbBackup, mongo *config.MongodbDatabase) *Mongodb {
+func NewMongodb(bk *config.MongodbBackup, mongo *config.MongodbDatabase) *Mongodb {
 	return &Mongodb{
-		backup: c,
+		backup: bk,
 		mongo:  mongo,
 	}
 }
@@ -77,9 +77,12 @@ func (m *Mongodb) getAllCollectionNames() []string {
 }
 
 func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
+	startMsec := start.Unix() * 1000
+	endMsec := end.Unix() * 1000
+
 	// mongodump --host localhost --db ${DB_NAME} --collection ${COLLECTION_NAME} -q "{time : { \$gte : 20150427, \$lt : ISODate(\"2015-04-26T00:00:00+09:00\") } }"
-	query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", start.Unix(), end.Unix())
-	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s", m.mongo.GetDialURL(), m.mongo.Database, query, saveFolder)
+	query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
+	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s -u %s -p %s", m.mongo.URL, m.mongo.Database, query, saveFolder, m.mongo.User, m.mongo.Pass)
 
 	fmt.Println(cmd)
 	args, err := shellwords.Parse(cmd)
