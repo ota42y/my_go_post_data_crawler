@@ -7,6 +7,7 @@ import (
 	"./util"
 	"./work/backup/mongodb"
 	"./work/chatLog"
+	"./work/checker/error"
 	"./work/sendMessage"
 	"./work/serverWorker"
 	"./work/twitter"
@@ -51,6 +52,11 @@ func main() {
 	hourlyWorker.AddWork(mongodb.NewMongodb(
 		config.NewMongodbBackupFromData(util.LoadFile(setting_home+"/mongodb_backup.yml")),
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
+		logger))
+
+	hourlyWorker.AddWork(error.NewChecker(
+		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
+		sendData.Database,
 		logger))
 
 	c := cron.New()
