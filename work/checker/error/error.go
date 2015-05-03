@@ -6,6 +6,7 @@ import (
 	"../../../config"
 	"../../../lib/database"
 	"../../../lib/logger"
+	"../../../lib/post"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -15,15 +16,15 @@ import (
 type Checker struct {
 	logger logger.Logger
 	mongo  *config.MongodbDatabase
-	db     *database.Database
+	sender post.Sender
 }
 
 // NewChecker return Checker
-func NewChecker(mongo *config.MongodbDatabase, db *database.Database, logger logger.Logger) *Checker {
+func NewChecker(mongo *config.MongodbDatabase, sender post.Sender, logger logger.Logger) *Checker {
 	return &Checker{
 		logger: logger,
 		mongo:  mongo,
-		db:     db,
+		sender: sender,
 	}
 }
 
@@ -77,8 +78,8 @@ func (c *Checker) sendErrorLog(eLogs []Log) int {
 	count := 0
 
 	for _, l := range eLogs {
-		p := database.NewPost(c.db.LogRoomName, l.Error, "errorLog:"+l.Time.String())
-		if c.db.AddNewPost(p) {
+		p := database.NewPost(c.sender.GetMessageRoomName(), l.Error, "errorLog:"+l.Time.String())
+		if c.sender.AddPost(p) {
 			count++
 		}
 	}
