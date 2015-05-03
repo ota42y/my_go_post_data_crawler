@@ -4,6 +4,7 @@ import (
 	"./config"
 	"./lib/evernote"
 	"./lib/logger"
+	"./lib/post"
 	"./util"
 	"./work/backup/mongodb"
 	"./work/chatLog"
@@ -56,7 +57,7 @@ func main() {
 
 	hourlyWorker.AddWork(error.NewChecker(
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
-		sendData.Database,
+		post.NewSender(sendData.Database),
 		logger))
 
 	c := cron.New()
