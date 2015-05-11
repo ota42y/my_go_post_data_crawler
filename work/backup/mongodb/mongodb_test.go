@@ -1,28 +1,17 @@
 package mongodb
 
 import (
-	"../../../config"
-	"bytes"
-	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/mgo.v2"
 	"testing"
 	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
+	"gopkg.in/mgo.v2"
+
+	"../../../config"
+	"../../../test"
 )
 
 var testCollections = []string{"test1", "test2", "test3"}
-
-type TestLogger struct {
-	B bytes.Buffer
-}
-
-func (l *TestLogger) Error(tag string, format string, args ...interface{}) {
-	fmt.Fprintf(&l.B, format, args...)
-}
-
-func (l *TestLogger) Info(tag string, format string, args ...interface{}) {
-	fmt.Fprintf(&l.B, format, args...)
-}
 
 func deleteAllData(mongo *config.MongodbDatabase) bool {
 	session, err := mgo.Dial(mongo.GetDialURL())
@@ -104,7 +93,7 @@ func TestSomething(t *testing.T) {
 		Database: "work_backup_mongodb_test",
 	}
 
-	testLogger := &TestLogger{}
+	testLogger := &test.Logger{}
 
 	m := NewMongodb(c, mongo, testLogger)
 	Convey("get collection name from mongodb", t, func() {
