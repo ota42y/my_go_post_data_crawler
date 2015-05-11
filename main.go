@@ -9,9 +9,9 @@ import (
 	"./work/backup/mongodb"
 	"./work/chatLog"
 	"./work/checker/error"
+	"./work/crawler/twitter"
 	"./work/sendMessage"
 	"./work/serverWorker"
-	"./work/twitter"
 	"./worker"
 	"fmt"
 	"github.com/robfig/cron"
@@ -40,10 +40,7 @@ func main() {
 
 	// hubotへのポスト用
 	sendData := sendMessage.New(util.LoadFile(setting_home + "/send_message.yml"))
-
-	// twitter収集用
-	twitterWorker := twitter.New(util.LoadFile(setting_home+"/crawler.yml"),
-		util.LoadFile(setting_home+"/twitter.yml"), sendData.Database, logger)
+	sender := post.NewSender(sendData.Database)
 
 	// チャットログ収集用
 	chatLogWorker := chatLog.New(util.LoadFile(setting_home+"/chatlog.yml"), logger, evernote)
@@ -55,16 +52,25 @@ func main() {
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
 		logger))
 
+	// check error log
 	hourlyWorker.AddWork(error.NewChecker(
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
-		post.NewSender(sendData.Database),
+		sender,
 		logger))
 
+	// 10 minutes worker
+	tenMinutesWorker := worker.NewWorker()
+	tenMinutesWorker.AddWork(twitter.NewTwitter(
+		util.LoadFile(setting_home+"/crawler.yml"),
+		util.LoadFile(setting_home+"/twitter.yml"),
+		sender, logger))
+
 	c := cron.New()
-	c.AddFunc("0 */10 * * * *", func() { twitterWorker.Work() })
 	c.AddFunc("0 */1 * * * *", func() { sendData.Work() })
 	c.AddFunc("0 */10 * * * *", func() { chatLogWorker.Work() })
+
 	c.AddFunc("0 2 * * * *", func() { hourlyWorker.Work() })
+	c.AddFunc("0 */10 * * * *", func() { tenMinutesWorker.Work() })
 	c.Start()
 
 	w := serverWorker.New(logger, sendData.Database, setting_home)
