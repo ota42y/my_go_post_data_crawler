@@ -9,6 +9,7 @@ import (
 
 // Logger is log interface
 type Logger interface {
+	Debug(tag string, format string, args ...interface{})
 	Info(tag string, format string, args ...interface{})
 	Error(tag string, format string, args ...interface{})
 }
@@ -19,14 +20,19 @@ type MyLogger struct {
 	tagBasename string
 }
 
-// Error write error log
-func (logger *MyLogger) Error(tag string, format string, args ...interface{}) {
-	logger.ErrorPrint(tag, fmt.Sprintf(format, args...))
+// Debug write error log
+func (logger *MyLogger) Debug(tag string, format string, args ...interface{}) {
+	logger.Print(tag, "debug", fmt.Sprintf(format, args...))
 }
 
 // Info write info log
 func (logger *MyLogger) Info(tag string, format string, args ...interface{}) {
-	logger.LogPrint(tag, fmt.Sprintf(format, args...))
+	logger.Print(tag, "info", fmt.Sprintf(format, args...))
+}
+
+// Error write error log
+func (logger *MyLogger) Error(tag string, format string, args ...interface{}) {
+	logger.ErrorPrint(tag, fmt.Sprintf(format, args...))
 }
 
 // Print write log to fluentd and Stdout

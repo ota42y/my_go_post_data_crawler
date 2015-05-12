@@ -26,6 +26,10 @@ func (l *TestLogger) Info(tag string, format string, args ...interface{}) {
 	fmt.Fprintf(&l.B, format, args...)
 }
 
+func (l *TestLogger) Debug(tag string, format string, args ...interface{}) {
+	fmt.Fprintf(&l.B, format, args...)
+}
+
 func deleteAllData(mongo *config.MongodbDatabase) bool {
 	session, err := mgo.Dial(mongo.GetDialURL())
 	if err != nil {
