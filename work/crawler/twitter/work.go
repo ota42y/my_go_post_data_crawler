@@ -64,7 +64,7 @@ func NewTwitter(settingBuf []byte, authBuf []byte, sender post.Sender, l logger.
 
 // Execute is starting crawler
 func (t *Twitter) Execute() {
-	t.l.Info(logName, "execute")
+	t.l.Debug(logName, "execute")
 	t.twitterCrawling()
-	t.l.Info(logName, "execute end")
+	t.l.Debug(logName, "execute end")
 }

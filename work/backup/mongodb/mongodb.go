@@ -37,7 +37,7 @@ func (m *Mongodb) Execute() {
 }
 
 func (m *Mongodb) backupData() {
-	m.logger.Info(tagName, "bakup start")
+	m.logger.Debug(tagName, "bakup start")
 
 	// create date
 	start := time.Now().AddDate(0, 0, -3)
@@ -92,7 +92,7 @@ func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
 	// mongodump --host localhost --db ${DB_NAME} --collection ${COLLECTION_NAME} -q "{time : { \$gte : 20150427, \$lt : ISODate(\"2015-04-26T00:00:00+09:00\") } }"
 	query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
 	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s", m.mongo.URL, m.mongo.Database, query, saveFolder)
-	m.logger.Info(tagName, "parse %s", cmd)
+	m.logger.Debug(tagName, "parse %s", cmd)
 	cmd = fmt.Sprintf("%s -u %s -p %s", cmd, m.mongo.User, m.mongo.Pass)
 
 	args, err := shellwords.Parse(cmd)
@@ -101,9 +101,9 @@ func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
 		return
 	}
 
-	m.logger.Info(tagName, "execute %s", cmd)
+	m.logger.Debug(tagName, "execute %s", cmd)
 	out, err := exec.Command(args[0], args[1:]...).Output()
-	m.logger.Info(tagName, "execute end %s", string(out))
+	m.logger.Debug(tagName, "execute end %s", string(out))
 
 	if err != nil {
 		m.logger.Error(tagName, err.Error())
@@ -119,23 +119,23 @@ func (m *Mongodb) archive(today time.Time, saveFolder string) {
 	filePath := path.Join(archiveFolder, today.Format("2006-01-02")+".zip")
 
 	cmd := fmt.Sprintf("zip -r %s %s", filePath, saveFolder)
-	m.logger.Info(tagName, "parse %s", cmd)
+	m.logger.Debug(tagName, "parse %s", cmd)
 
 	args, err := shellwords.Parse(cmd)
 	if err != nil {
 		m.logger.Error(tagName, err.Error())
 	}
 
-	m.logger.Info(tagName, "execute %s", cmd)
+	m.logger.Debug(tagName, "execute %s", cmd)
 	out, err := exec.Command(args[0], args[1:]...).Output()
-	m.logger.Info(tagName, "execute end %s", string(out))
+	m.logger.Debug(tagName, "execute end %s", string(out))
 	if err != nil {
 		m.logger.Error(tagName, err.Error())
 	}
 }
 
 func (m *Mongodb) createExpireIndex() {
-	m.logger.Info(tagName, "create ExpireInex")
+	m.logger.Debug(tagName, "create ExpireInex")
 
 	collections := m.getAllCollectionNames()
 	for _, collection := range collections {
@@ -144,7 +144,7 @@ func (m *Mongodb) createExpireIndex() {
 }
 
 func (m *Mongodb) addIndex(collection string) {
-	m.logger.Info(tagName, "add index "+collection)
+	m.logger.Debug(tagName, "add index "+collection)
 
 	session, err := mgo.Dial(m.mongo.GetDialURL())
 	if err != nil {

@@ -41,7 +41,7 @@ func (c *Checker) Execute() {
 }
 
 func (c *Checker) getAllErrorLog() []Log {
-	c.logger.Info("errorLogChecker", "getAllErrorLog")
+	c.logger.Debug("errorLogChecker", "getAllErrorLog")
 
 	var eLogs []Log
 
@@ -63,18 +63,18 @@ func (c *Checker) getAllErrorLog() []Log {
 		q := d.C(name).Find(bson.M{"error": bson.M{"$exists": true}})
 		q.All(&logs)
 
-		c.logger.Info("errorLogChecker", "get %d logs in %d", name, len(logs))
+		c.logger.Debug("errorLogChecker", "get %d logs in %d", name, len(logs))
 
 		eLogs = append(eLogs, logs...)
 	}
 
-	c.logger.Info("errorLogChecker", "get error logs %d", len(eLogs))
+	c.logger.Debug("errorLogChecker", "get error logs %d", len(eLogs))
 	return eLogs
 }
 
 // return send error logs, if already exist, not send
 func (c *Checker) sendErrorLog(eLogs []Log) int {
-	c.logger.Info("errorLogChecker", "sendErrorLog %d", len(eLogs))
+	c.logger.Debug("errorLogChecker", "sendErrorLog %d", len(eLogs))
 	count := 0
 
 	for _, l := range eLogs {
@@ -84,6 +84,6 @@ func (c *Checker) sendErrorLog(eLogs []Log) int {
 		}
 	}
 
-	c.logger.Info("errorLogChecker", "sendErrorLog %d errors send", count)
+	c.logger.Debug("errorLogChecker", "sendErrorLog %d errors send", count)
 	return count
 }

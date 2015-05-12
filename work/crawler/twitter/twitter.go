@@ -36,7 +36,7 @@ func (t *Twitter) getTweet(screenName string) *[]anaconda.Tweet {
 		var tw []anaconda.Tweet
 		return &tw
 	}
-	t.l.Info(logName, "get %d tweets", len(tweets))
+	t.l.Debug(logName, "get %d tweets", len(tweets))
 
 	return &tweets
 }
@@ -62,7 +62,7 @@ func (t *Twitter) filterUnRegistTweet(tweets *[]anaconda.Tweet) *[]anaconda.Twee
 		}
 	}
 
-	t.l.Info(logName, "unregist %d tweets", len(unregister))
+	t.l.Debug(logName, "unregist %d tweets", len(unregister))
 	return &unregister
 }
 
@@ -73,12 +73,12 @@ func (t *Twitter) sendTweets(tweets *[]anaconda.Tweet) *[]anaconda.Tweet {
 		p := makePostDataFromTweet(t.sender.GetMessageRoomName(), &tweet)
 
 		if t.sender.AddPost(p) {
-			t.l.Info(logName, "send tweet : %s", tweet.Text)
+			t.l.Debug(logName, "send tweet : %s", tweet.Text)
 			complete = append(complete, tweet)
 		}
 	}
 
-	t.l.Info(logName, "send %s tweet", len(complete))
+	t.l.Debug(logName, "send %s tweet", len(complete))
 	return &complete
 }
 
