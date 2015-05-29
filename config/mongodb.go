@@ -14,10 +14,16 @@ type MongodbDatabase struct {
 
 // GetDialURL return string for mgo.dial
 func (m *MongodbDatabase) GetDialURL() string {
+	url := m.URL
+
 	if m.User != "" && m.Pass != "" {
-		return m.User + ":" + m.Pass + "@" + m.URL
+		url = m.User + ":" + m.Pass + "@" + url
 	}
-	return m.URL
+	if m.Database != "" {
+		url = url + "/" + m.Database
+	}
+
+	return url
 }
 
 // MongodbBackup is backup archive path and workspace

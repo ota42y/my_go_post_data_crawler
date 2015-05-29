@@ -65,6 +65,7 @@ func (m *Mongodb) getAllCollectionNames() []string {
 
 	session, err := mgo.Dial(m.mongo.GetDialURL())
 	if err != nil {
+		m.logger.Error(tagName, "database dial error %s", err)
 		return names
 	}
 	defer session.Close()
@@ -72,6 +73,7 @@ func (m *Mongodb) getAllCollectionNames() []string {
 	d := session.DB(m.mongo.Database)
 	rawNames, err := d.CollectionNames()
 	if err != nil {
+		m.logger.Error(tagName, "get collection names error %s", err)
 		return names
 	}
 
