@@ -8,8 +8,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/mgo.v2"
 
-	"../../../config"
-	"../../../lib/database"
+	"../../../../config"
+	"../../../../lib/database"
 )
 
 var testCollections = []string{"test1", "test2", "test3"}
@@ -128,38 +128,38 @@ func TestErrorChecker(t *testing.T) {
 	sender := &TestSender{}
 	sender.Reset()
 
-	checker := NewChecker(mongo, sender, testLogger)
+	n := NewLogCollector(mongo, sender, testLogger)
 
 	Convey("FindError", t, func() {
 
 		Convey("ErrorExist", func() {
 			deleteAllData(mongo)
 			createTestData(mongo)
-			So(len(checker.getAllErrorLog()), ShouldEqual, 3)
+			So(len(n.GetLog()), ShouldEqual, 3)
 		})
 
 		Convey("ErrorNotExist", func() {
 			deleteAllData(mongo)
-			So(checker.getAllErrorLog(), ShouldBeEmpty)
+			So(n.GetLog(), ShouldBeEmpty)
 		})
 
 	})
 
-	Convey("SendErrorLog", t, func() {
+	Convey("sendLogs", t, func() {
 
 		Convey("ErrorExist", func() {
 			deleteAllData(mongo)
 			createTestData(mongo)
-			logs := checker.getAllErrorLog()
-			So(checker.sendErrorLog(logs), ShouldEqual, 3)
+			logs := n.GetLog()
+			So(n.SendLogs(logs), ShouldEqual, 3)
 			So(len(sender.P), ShouldEqual, 3)
 		})
 
 		Convey("ErrorNotExist", func() {
 			deleteAllData(mongo)
 			sender.Reset()
-			logs := checker.getAllErrorLog()
-			So(checker.sendErrorLog(logs), ShouldEqual, 0)
+			logs := n.GetLog()
+			So(n.SendLogs(logs), ShouldEqual, 0)
 			So(len(sender.P), ShouldEqual, 0)
 		})
 
@@ -167,9 +167,9 @@ func TestErrorChecker(t *testing.T) {
 			deleteAllData(mongo)
 			createTestData(mongo)
 			sender.Reset()
-			logs := checker.getAllErrorLog()
+			logs := n.GetLog()
 			sender.IsSaveSuccess = false
-			So(checker.sendErrorLog(logs), ShouldEqual, 0)
+			So(n.SendLogs(logs), ShouldEqual, 0)
 			So(len(sender.P), ShouldEqual, 3)
 		})
 	})
