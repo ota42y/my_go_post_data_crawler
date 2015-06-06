@@ -32,8 +32,8 @@ func NewMongodb(bk *config.MongodbBackup, mongo *config.MongodbDatabase, logger 
 
 // Execute execute backup and convert zip file
 func (m *Mongodb) Execute() {
-	m.backupData()
 	m.createExpireIndex()
+	m.backupData()
 }
 
 func (m *Mongodb) backupData() {
