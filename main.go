@@ -31,7 +31,7 @@ func main() {
 	// evernote送信用
 	evernote := evernote.NewSenderFromData(util.LoadFile(setting_home + "/evernote.yml"))
 
-	logger, err := logger.NewFromData("go_cron", util.LoadFile(setting_home+"/fluent.yml"))
+	logger, err := logger.NewFromData("crawler", util.LoadFile(setting_home+"/fluent.yml"))
 	if err != nil {
 		logger.LogPrint("main", "----------")
 		logger.LogPrint("main", "no fluentd")
