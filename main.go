@@ -8,7 +8,6 @@ import (
 	"./util"
 	"./work/backup/mongodb"
 	"./work/chatLog"
-	"./work/checker/error"
 	"./work/crawler/twitter"
 	"./work/sendMessage"
 	"./work/serverWorker"
@@ -18,6 +17,9 @@ import (
 	"math/rand"
 	"os"
 	"time"
+
+	"./work/checker/log/error"
+	"./work/checker/log/info"
 )
 
 func main() {
@@ -53,7 +55,13 @@ func main() {
 		logger))
 
 	// check error log
-	hourlyWorker.AddWork(error.NewChecker(
+	hourlyWorker.AddWork(error.NewLogCollector(
+		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
+		sender,
+		logger))
+
+	// check info log
+	hourlyWorker.AddWork(info.NewLogCollector(
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
 		sender,
 		logger))
