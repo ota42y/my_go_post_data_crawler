@@ -4,3 +4,4 @@ main
 .DS_Store
 _vendor/
 check.go
+workDir/
