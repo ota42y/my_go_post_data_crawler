@@ -97,9 +97,7 @@ func TestSomething(t *testing.T) {
 
 	m := NewMongodb(c, mongo, testLogger)
 	Convey("get collection name from mongodb", t, func() {
-
 		Convey("data exist", func() {
-
 			Convey("return collections", func() {
 				So(deleteAllData(mongo), ShouldBeTrue)
 				So(createTestData(mongo), ShouldBeTrue)
@@ -118,7 +116,6 @@ func TestSomething(t *testing.T) {
 	})
 
 	Convey("make index", t, func() {
-
 		Convey("new index", func() {
 			So(deleteAllData(mongo), ShouldBeTrue)
 			So(createTestData(mongo), ShouldBeTrue)

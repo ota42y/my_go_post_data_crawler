@@ -3,6 +3,7 @@ package serverWorker
 import (
 	"../../command/periodic"
 	"../../command/pomodoro"
+	"../../command/shell"
 	"../../util"
 	"./../../command/status"
 	"./../../lib/database"
@@ -32,6 +33,6 @@ func (w *Worker) Work() {
 	s.AddCommand(status.New())
 	s.AddCommand(periodic.New(w.s, w.postDatabase.LogRoomName))
 	s.AddCommand(pomodoro.New(w.s, w.postDatabase.DefaultRoomName, util.LoadFile(w.settingHome+"/tumblr.yml")))
-
+	s.AddCommand(shell.New(string(util.LoadFile(w.settingHome+"/shell.toml"))))
 	s.Start()
 }
