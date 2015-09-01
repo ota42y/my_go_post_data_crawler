@@ -2,10 +2,13 @@ package main
 
 import (
 	"./config"
+	"./config/backup"
+
 	"./lib/evernote"
 	"./lib/logger"
 	"./lib/post"
 	"./util"
+	"./work/backup/dropbox"
 	"./work/backup/mongodb"
 	"./work/chatLog"
 	"./work/crawler/twitter"
@@ -47,6 +50,7 @@ func main() {
 	// チャットログ収集用
 	chatLogWorker := chatLog.New(util.LoadFile(setting_home+"/chatlog.yml"), logger, evernote)
 
+	// 1 hour worker
 	// mongodbバックアップ用
 	hourlyWorker := worker.NewWorker()
 	hourlyWorker.AddWork(mongodb.NewMongodb(
@@ -64,6 +68,11 @@ func main() {
 	hourlyWorker.AddWork(info.NewLogCollector(
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
 		sender,
+		logger))
+
+	// Dropbox backup
+	hourlyWorker.AddWork(dropbox.NewDropbox(
+		backup.NewDropbox(setting_home+"/dropbox_backup.toml"),
 		logger))
 
 	// 10 minutes worker

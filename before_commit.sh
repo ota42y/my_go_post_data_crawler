@@ -18,8 +18,12 @@ gom test
 echo "gom test work/backup/mongodb/*.go"
 gom test work/backup/mongodb/*.go
 
+echo "gom test work/backup/dropbox/*.go"
+gom test work/backup/dropbox/*.go
+
 echo "gom test work/checker/error/*.go"
 gom test work/checker/log/error/*.go
 
 echo "gom test work/crawler/twitter/*.go"
 gom test work/crawler/twitter/*.go
+

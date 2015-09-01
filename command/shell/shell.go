@@ -2,10 +2,10 @@ package shell
 
 import (
 	"fmt"
-	"strings"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/mattn/go-shellwords"
@@ -18,7 +18,7 @@ type Setting struct {
 }
 
 type ShellCommand struct {
-	Name string
+	Name    string
 	Command string
 	WorkDir string
 }
