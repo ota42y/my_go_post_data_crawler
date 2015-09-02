@@ -12,10 +12,10 @@ type Dropbox struct {
 }
 
 // NewDropbox return Dropbox from yaml data
-func NewDropbox(settingText string) *Dropbox {
+func NewDropbox(configFilepath string) *Dropbox {
 	var d Dropbox
 
-	_, err := toml.Decode(settingText, &d)
+	_, err := toml.DecodeFile(configFilepath, &d)
 	if err != nil {
 		return nil
 	}
