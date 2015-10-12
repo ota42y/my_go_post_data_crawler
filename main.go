@@ -58,6 +58,11 @@ func main() {
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
 		logger))
 
+	hourlyWorker.AddWork(mongodb.NewMongodb(
+		config.NewMongodbBackupFromData(util.LoadFile(setting_home+"/mongodb_local_backup.yml")),
+		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_local.yml")),
+		logger))
+
 	// check error log
 	hourlyWorker.AddWork(error.NewLogCollector(
 		config.NewMongodbDatabaseFromData(util.LoadFile(setting_home+"/mongodb_logserver.yml")),
