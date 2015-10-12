@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mattn/go-shellwords"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"os"
 	"os/exec"
 	"path"
@@ -34,6 +35,23 @@ func NewMongodb(bk *config.MongodbBackup, mongo *config.MongodbDatabase, logger 
 func (m *Mongodb) Execute() {
 	m.createExpireIndex()
 	m.backupData()
+}
+
+func (m *Mongodb) repairDatabase() {
+	session, err := mgo.Dial(m.mongo.GetDialURL())
+	if err != nil {
+		m.logger.Error(tagName, "database dial error %s", err)
+		return
+	}
+	defer session.Close()
+
+	result := bson.M{}
+	d := session.DB(m.mongo.Database)
+	err = d.Run(bson.D{{"repairDatabase", 1}}, &result)
+	if err != nil {
+		m.logger.Error(tagName, "repairDatabase error %s", err)
+	}
+	m.logger.Debug(tagName, "%s", result)
 }
 
 func (m *Mongodb) backupData() {
@@ -91,24 +109,28 @@ func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
 	startMsec := start.Unix() * 1000
 	endMsec := end.Unix() * 1000
 
-	// mongodump --host localhost --db ${DB_NAME} --collection ${COLLECTION_NAME} -q "{time : { \$gte : 20150427, \$lt : ISODate(\"2015-04-26T00:00:00+09:00\") } }"
-	query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
-	cmd := fmt.Sprintf("mongodump --host %s --db %s -q %s -o %s", m.mongo.URL, m.mongo.Database, query, saveFolder)
-	m.logger.Debug(tagName, "parse %s", cmd)
-	cmd = fmt.Sprintf("%s -u %s -p %s", cmd, m.mongo.User, m.mongo.Pass)
+	collectionNames := m.getAllCollectionNames()
 
-	args, err := shellwords.Parse(cmd)
-	if err != nil {
-		m.logger.Error(tagName, err.Error())
-		return
-	}
+	for _, collectionName := range collectionNames {
+		// mongodump --host localhost --db ${DB_NAME} -c ${COLLECTION_NAME} -q "{time : { \$gte : 20150427, \$lt : ISODate(\"2015-04-26T00:00:00+09:00\") } }"
+		query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
+		cmd := fmt.Sprintf("mongodump --host %s --db %s -c %s -q %s -o %s", m.mongo.URL, m.mongo.Database, collectionName, query, saveFolder)
+		m.logger.Debug(tagName, "parse %s", cmd)
+		cmd = fmt.Sprintf("%s -u %s -p %s", cmd, m.mongo.User, m.mongo.Pass)
 
-	m.logger.Debug(tagName, "execute %s", cmd)
-	out, err := exec.Command(args[0], args[1:]...).Output()
-	m.logger.Debug(tagName, "execute end %s", string(out))
+		args, err := shellwords.Parse(cmd)
+		if err != nil {
+			m.logger.Error(tagName, err.Error())
+			return
+		}
 
-	if err != nil {
-		m.logger.Error(tagName, err.Error())
+		m.logger.Debug(tagName, "execute %s", cmd)
+		out, err := exec.Command(args[0], args[1:]...).Output()
+		m.logger.Debug(tagName, "execute end %s", string(out))
+
+		if err != nil {
+			m.logger.Error(tagName, err.Error())
+		}
 	}
 }
 
