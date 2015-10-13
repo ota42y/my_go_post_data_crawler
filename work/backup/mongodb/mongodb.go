@@ -116,8 +116,11 @@ func (m *Mongodb) dump(start time.Time, end time.Time, saveFolder string) {
 		query := fmt.Sprintf("\"{time : { \\$gte :  new Date(%d), \\$lt :  new Date(%d) } }\"", startMsec, endMsec)
 		cmd := fmt.Sprintf("mongodump --host %s --db %s -c %s -q %s -o %s", m.mongo.URL, m.mongo.Database, collectionName, query, saveFolder)
 		m.logger.Debug(tagName, "parse %s", cmd)
-		cmd = fmt.Sprintf("%s -u %s -p %s", cmd, m.mongo.User, m.mongo.Pass)
 
+		if m.mongo.User != "" && m.mongo.Pass != "" {
+			cmd = fmt.Sprintf("%s -u %s -p %s", cmd, m.mongo.User, m.mongo.Pass)
+		}
+		
 		args, err := shellwords.Parse(cmd)
 		if err != nil {
 			m.logger.Error(tagName, err.Error())
