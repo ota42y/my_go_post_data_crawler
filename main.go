@@ -2,14 +2,12 @@ package main
 
 import (
 	"./config"
-	"./config/backup"
 
 	"./lib/evernote"
 	"./lib/logger"
 	"./lib/post"
 	"./util"
 	"./work/backup/dropbox"
-	"./work/backup/mongodb"
 	"./work/chatLog"
 	"./work/crawler/twitter"
 	"./work/sendMessage"
