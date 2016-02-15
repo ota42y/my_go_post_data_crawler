@@ -75,11 +75,6 @@ func main() {
 		sender,
 		logger))
 
-	// Dropbox backup
-	hourlyWorker.AddWork(dropbox.NewDropbox(
-		backup.NewDropbox(setting_home+"/dropbox_backup.toml"),
-		logger))
-
 	// 10 minutes worker
 	tenMinutesWorker := worker.NewWorker()
 	tenMinutesWorker.AddWork(twitter.NewTwitter(
