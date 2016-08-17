@@ -22,6 +22,8 @@ func NewSenderFromData(data []byte) (s *Sender) {
 }
 
 func (sender *Sender) SendNote(title string, text string) {
+	return
+
 	body := "To: " + sender.EvernoteMail + "\r\nSubject: " +
 		title + "\r\n\r\n" + text
 	auth := smtp.PlainAuth("", sender.GmailAccount, sender.GmailPass, "smtp.gmail.com")
